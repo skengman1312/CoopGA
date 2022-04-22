@@ -3,6 +3,7 @@ sys.path.append('prova_0')
 from model import FoodModel
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.visualization.UserParam import UserSettableParameter
 # This is a sample Python script.
 
 # Press Maiusc+F10 to execute it or replace it with your code.
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     server = ModularServer(FoodModel,
                           [grid],
                           "Food Model",
-                          {"N": 5, "nf": 5, "width": 10, "height": 10})
+                          {"N": UserSettableParameter("slider", "Creature number", 5, 0, 20, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 20, 1), "width": 10, "height": 10})
     server.port = 8521  # The default
     server.launch()
 
