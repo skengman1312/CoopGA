@@ -5,15 +5,18 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 
+#prima prova di simulazione con visualzazione su server in tempo reale
+
+#regole molto semplici:
+# 5hp di partenza; -1hp a step; +5hp per unità di cibo consumata
+# movimento di una casella a step per ogni creatura;
+# se c'è cibo nelle vicinanze il movimento sarà verso il cibo, altrimenti sarà randomico.
+# se gli hp scendono a 0 la creatura è eliminata
+# il numero di cibo è costante
+
 
 
 def agent_portrayal(agent):
-    portrayal = {"Shape": "rect",
-                 "Color": "Color",
-                 "Filled": "true",
-                 "Layer": 0,
-                 "w": 0.5,
-                 "h": 0.5}
     if agent.type == "creature":
         portrayal = {"Shape": "rect",
                      "Color": "red",
