@@ -26,12 +26,13 @@ class FoodAgent(Agent):
             moore=True,
             include_center=False)
         new_position = self.random.choice(possible_steps)
-        for s in self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=5):
-            if s.type == "food":
-                print(s.pos)
-                new_position = min(possible_steps, key = lambda x: sqrt(((s.pos[0]-x[0])**2) + ((s.pos[1]-x[1])**2)))
-                break
-
+        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=5)
+        nb = [x.pos for x in nb if x.type == "food"]
+        print("nb:  ", nb)
+        if len(nb) > 0:
+            nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
+            print(nearest_food)
+            new_position = min(possible_steps, key=lambda x: sqrt(((nearest_food[0] - x[0]) ** 2) + ((nearest_food[1] - x[1]) ** 2)))
 
         self.model.grid.move_agent(self, new_position)
 
