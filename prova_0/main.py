@@ -40,7 +40,9 @@ if __name__ == '__main__':
     server = ModularServer(FoodModel,
                           [grid],
                           "Food Model",
-                          {"N": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 200, 1), "width": 10, "height": 10})
+                          {"N": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
+                           "sight" : UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
+                           "width": 10, "height": 10})
     server.port = 8521  # The default
     server.launch()
 

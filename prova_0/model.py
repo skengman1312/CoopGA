@@ -6,10 +6,11 @@ from math import sqrt
 class FoodAgent(Agent):
     """An agent with fixed initial wealth."""
 
-    def __init__(self, unique_id, model, type):
+    def __init__(self, unique_id, model, type, sight = None):
         super().__init__(unique_id, model)
         self.hp = 5
         self.type = type
+        self.sight = sight
 
     def step(self):
         # The agent's step will go here.
@@ -21,19 +22,16 @@ class FoodAgent(Agent):
 
 
     def move(self):
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos,
-            moore=True,
-            include_center=False)
-        new_position = self.random.choice(possible_steps)
-        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=5)
-        nb = [x.pos for x in nb if x.type == "food"]
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False) #all the cells at dist = 1
+        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
+        nb = [x.pos for x in nb if x.type == "food"] #food ad distance r = sight, we may optimize it
         print("nb:  ", nb)
         if len(nb) > 0:
             nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
             print(nearest_food)
             new_position = min(possible_steps, key=lambda x: sqrt(((nearest_food[0] - x[0]) ** 2) + ((nearest_food[1] - x[1]) ** 2)))
-
+        else:
+            new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
     def eat(self):
@@ -48,7 +46,7 @@ class FoodAgent(Agent):
 class FoodModel(Model):
     """A model with some number of agents."""
 
-    def __init__(self, N, nf, width, height):
+    def __init__(self, N, nf,sight, width, height):
         self.num_agents = N
         self.num_food = nf
         self.schedule = RandomActivation(self)
@@ -56,7 +54,7 @@ class FoodModel(Model):
         self.running = True
         # Create agents
         for i in range(self.num_agents):
-            a = FoodAgent(i, self, "creature")
+            a = FoodAgent(i, self, "creature", sight= sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
