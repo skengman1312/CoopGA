@@ -1,6 +1,7 @@
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+import numpy as np
 
 class FoodAgent(Agent):
     """An agent with fixed initial wealth."""
@@ -25,8 +26,9 @@ class FoodAgent(Agent):
             moore=True,
             include_center=False)
         new_position = self.random.choice(possible_steps)
-        for s in self.model.grid.get_neighbors(self.pos, moore=True, include_center=False):
+        for s in self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=5):
             if s.type == "food":
+
                 new_position = s.pos
                 break
 

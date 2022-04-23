@@ -36,11 +36,11 @@ def agent_portrayal(agent):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
-    grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+    grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
     server = ModularServer(FoodModel,
                           [grid],
                           "Food Model",
-                          {"N": UserSettableParameter("slider", "Creature number", 5, 0, 20, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 20, 1), "width": 10, "height": 10})
+                          {"N": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 200, 1), "width": 100, "height": 100})
     server.port = 8521  # The default
     server.launch()
 
