@@ -1,7 +1,13 @@
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from mesa.datacollection import DataCollector
 from math import sqrt
+
+
+def food_stat(model):
+    agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "creature"]
+    return sum(agent_food)/len(agent_food)
 
 class FoodAgent(Agent):
     """An agent with fixed initial wealth."""
@@ -52,6 +58,8 @@ class FoodModel(Model):
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
         self.running = True
+
+        self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat},agent_reporters={"Health": "hp"})
         # Create agents
         for i in range(self.num_agents):
             a = FoodAgent(i, self, "creature", sight= sight)
@@ -73,10 +81,12 @@ class FoodModel(Model):
 
     def step(self):
         """Advance the model by one step."""
+        self.datacollector.collect(self)
         self.schedule.step()
         for a in self.schedule.agents:
             if a.hp <= 0:
                 self.grid.remove_agent(a)
                 self.schedule.remove(a)
+
 
 

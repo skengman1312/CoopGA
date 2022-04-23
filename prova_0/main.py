@@ -4,6 +4,7 @@ from model import FoodModel
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
+from mesa.visualization.modules import ChartModule
 
 #prima prova di simulazione con visualzazione su server in tempo reale
 
@@ -37,8 +38,10 @@ def agent_portrayal(agent):
 if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
     grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+    chart = ChartModule([{"Label": "Mean food","Color": "Black"}], data_collector_name='datacollector', canvas_height=100, canvas_width=200)
+
     server = ModularServer(FoodModel,
-                          [grid],
+                          [grid, chart],
                           "Food Model",
                           {"N": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
                            "sight" : UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
