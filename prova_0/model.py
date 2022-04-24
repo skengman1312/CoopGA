@@ -7,7 +7,8 @@ from math import sqrt
 
 def food_stat(model):
     agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "creature"]
-    return sum(agent_food)/len(agent_food)
+    if len(agent_food) > 0:
+        return sum(agent_food)/len(agent_food)
 
 class FoodAgent(Agent):
     """An agent with fixed initial wealth."""
@@ -59,7 +60,9 @@ class FoodModel(Model):
         self.grid = MultiGrid(width, height, True)
         self.running = True
 
-        self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat},agent_reporters={"Health": "hp"})
+        self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat,
+                                                             "Number of cratures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"])},
+                                           agent_reporters={"Health": "hp"})
         # Create agents
         for i in range(self.num_agents):
             a = FoodAgent(i, self, "creature", sight= sight)
@@ -87,6 +90,8 @@ class FoodModel(Model):
             if a.hp <= 0:
                 self.grid.remove_agent(a)
                 self.schedule.remove(a)
+        if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
+            self.running = False
 
 
 

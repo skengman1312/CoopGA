@@ -38,10 +38,11 @@ def agent_portrayal(agent):
 if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
-    chart = ChartModule([{"Label": "Mean food","Color": "Black"}], data_collector_name='datacollector', canvas_height=100, canvas_width=200)
-
+    chart_0 = ChartModule([{"Label": "Mean food","Color": "Black"}], data_collector_name='datacollector', canvas_height=100, canvas_width=200)
+    chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Black"}], data_collector_name='datacollector',
+                        canvas_height=100, canvas_width=200)
     server = ModularServer(FoodModel,
-                          [grid, chart],
+                          [grid, chart_0, chart_1],
                           "Food Model",
                           {"N": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
                            "sight" : UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
