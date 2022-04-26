@@ -25,7 +25,7 @@ class FoodAgent(Agent):
         if self.type == "creature":
             self.move()
             self.eat()
-            self.hp -= 1
+            self.hp -= 0.2+ 0.1 * self.hp
 
 
     def move(self):
@@ -61,7 +61,7 @@ class FoodModel(Model):
         self.running = True
 
         self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat,
-                                                             "Number of cratures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"])},
+                                                             "Number of creatures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"])},
                                            agent_reporters={"Health": "hp"})
         # Create agents
         for i in range(self.num_agents):
