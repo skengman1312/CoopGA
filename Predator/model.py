@@ -80,7 +80,8 @@ class FoodModel(Model):
         self.running = True
 
         self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat,
-                                                             "Number of creatures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"])},
+                                                             "Number of creatures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"]),
+                                                             "Number of predators": lambda x: len([agent for agent in x.schedule.agents if agent.type == "predator"])},
                                            agent_reporters={"Health": "hp"})
         # Create agents
         for i in range(self.num_agents):

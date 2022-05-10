@@ -29,18 +29,18 @@ def agent_portrayal(agent):
     elif agent.type == "predator":
 
         portrayal = {"Shape": "rect",
-                     "Color": "black",
+                     "Color": "orange",
                      "Filled": "true",
                      "Layer": 0,
-                     "w": 0.7,
-                     "h": 0.7}
+                     "w": 0.9,
+                     "h": 0.9}
 
     else:
         portrayal = {"Shape": "circle",
                      "Color": "green",
                      "Filled": "true",
                      "Layer": 1,
-                     "r": 0.2}
+                     "r": 0.5}
 
     return portrayal
 
@@ -49,14 +49,15 @@ if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
     chart_0 = ChartModule([{"Label": "Mean food","Color": "Black"}], data_collector_name='datacollector', canvas_height=100, canvas_width=200)
-    chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Black"}], data_collector_name='datacollector',
+    chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Black"}, {"Label": "Number of predators", "Color": "Red"}], data_collector_name='datacollector',
                         canvas_height=100, canvas_width=200)
+
     server = ModularServer(FoodModel,
                           [grid, chart_0, chart_1],
                           "Food Model",
                           {"ncreatures": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1),
                            "nfood": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
-                           "npred": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
+                           "npred": UserSettableParameter("slider", "Predator number", 5, 0, 200, 1),
                            "sight" : UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
                            "width": 100, "height": 100})
     server.port = 8521  # The default
