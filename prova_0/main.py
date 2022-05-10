@@ -15,7 +15,7 @@ from mesa.visualization.modules import ChartModule
 # se gli hp scendono a 0 la creatura è eliminata
 # il numero di cibo è costante
 
-
+# prova
 
 def agent_portrayal(agent):
     if agent.type == "creature":
