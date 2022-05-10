@@ -9,21 +9,31 @@ dist = lambda x, y: sqrt(((x[0]-y[0])**2) + ((x[1]-y[1])**2))
 
 
 def creature_food_stat(model):
+    """
+    collects data about creature mean food
+    """
     agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "creature"]
     if len(agent_food) > 0:
         return sum(agent_food)/len(agent_food)
 
 
 def predator_food_stat(model):
+    """
+    collects data about predator mean food
+    """
     agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "predator"]
     if len(agent_food) > 0:
         return sum(agent_food)/len(agent_food)
 
 
 class FoodAgent(Agent):
-    """An agent with fixed initial wealth."""
+    """An Food Agent seeking survival."""
 
-    def __init__(self, unique_id, model, type, sight = None):
+    def __init__(self, unique_id, model, type: str, sight = None):
+        """
+        Food Agent init function
+        Type can be either food, creature or predator
+        """
         super().__init__(unique_id, model)
         self.hp = 5
         self.type = type
@@ -38,7 +48,10 @@ class FoodAgent(Agent):
             self.hp -= 0.2+ 0.1 * self.hp
 
     def move(self):
-        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False) #all the cells at dist = 1
+        """
+        function to move creatures and predators
+        """
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)  #all the cells at dist = 1
         nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
         nb = [x.pos for x in nb if x.type == "food"] if self.type == "creature" \
             else [x.pos for x in nb if x.type == "creature"]  # food ad distance r = sight, we may optimize it
@@ -56,6 +69,9 @@ class FoodAgent(Agent):
         self.model.grid.move_agent(self, new_position)
 
     def eat(self):
+        """
+        function to eat if there is something at hand
+        """
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         foodtype = "food" if self.type == "creature" else "creature"
         for a in cellmates:
@@ -65,6 +81,10 @@ class FoodAgent(Agent):
                 break
 
     def hunt(self, nf):
+        """
+        "hunting" function to code for the behaviour of the predators
+        nf: nearest creature
+        """
         if dist(self.pos, nf) < 5:
             possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius= 4)  # all the cells at dist = 1
             new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
@@ -72,11 +92,16 @@ class FoodAgent(Agent):
             self.model.grid.move_agent(self, new_position)
 
 
-
 class FoodModel(Model):
-    """A model with some number of agents."""
+    """A model with some number of food, creatures and predators."""
 
-    def __init__(self, ncreatures, nfood, npred,sight, width, height):
+    def __init__(self, ncreatures: int, nfood: int, npred: int, sight: int, width: int, height: int):
+        """
+        ncreatures: number of creatures
+        nfood: number of food
+        npred: number of predators
+        sight: sight of creatures and predators
+        """
         self.num_agents = ncreatures
         self.num_food = nfood
         self.num_pred = npred
@@ -114,9 +139,6 @@ class FoodModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-
-
-
     def step(self):
         """Advance the model by one step."""
         self.datacollector.collect(self)
@@ -128,5 +150,24 @@ class FoodModel(Model):
         if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
             self.running = False
 
+
+class CustomFoodModel(FoodModel):
+    """
+    Per testare nuove cose direi di creare nuove classi figlie e modificare quelle; aggiunginedo e
+    modificando metodi quando serve.
+    Può essere comod per integrare gli algo genetici sulla base di una classse già funzionante.
+
+    """
+    pass
+
+
+class CustomFoodAgent(FoodAgent):
+    """
+     Per testare nuove cose direi di creare nuove classi figlie e modificare quelle; aggiunginedo e
+     modificando metodi quando serve.
+     Può essere comod per integrare gli algo genetici sulla base di una classse già funzionante.
+
+     """
+    pass
 
 
