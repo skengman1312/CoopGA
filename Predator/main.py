@@ -20,7 +20,7 @@ from mesa.visualization.modules import ChartModule
 def agent_portrayal(agent):
     if agent.type == "creature":
         portrayal = {"Shape": "rect",
-                     "Color": "red",
+                     "Color": "blue",
                      "Filled": "true",
                      "Layer": 0,
                      "w": 0.5,
@@ -29,7 +29,7 @@ def agent_portrayal(agent):
     elif agent.type == "predator":
 
         portrayal = {"Shape": "rect",
-                     "Color": "orange",
+                     "Color": "red",
                      "Filled": "true",
                      "Layer": 0,
                      "w": 0.9,
@@ -48,8 +48,8 @@ def agent_portrayal(agent):
 if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
-    chart_0 = ChartModule([{"Label": "Mean food","Color": "Black"}], data_collector_name='datacollector', canvas_height=100, canvas_width=200)
-    chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Black"}, {"Label": "Number of predators", "Color": "Red"}], data_collector_name='datacollector',
+    chart_0 = ChartModule([{"Label": "Mean creature food","Color": "Blue"}, {"Label": "Mean predator food","Color": "Red"} ], data_collector_name='datacollector', canvas_height=100, canvas_width=200)
+    chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Blue"}, {"Label": "Number of predators", "Color": "Red"}], data_collector_name='datacollector',
                         canvas_height=100, canvas_width=200)
 
     server = ModularServer(FoodModel,

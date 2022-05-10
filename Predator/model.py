@@ -7,10 +7,18 @@ from math import sqrt
 
 dist = lambda x, y: sqrt(((x[0]-y[0])**2) + ((x[1]-y[1])**2))
 
-def food_stat(model):
+
+def creature_food_stat(model):
     agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "creature"]
     if len(agent_food) > 0:
         return sum(agent_food)/len(agent_food)
+
+
+def predator_food_stat(model):
+    agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "predator"]
+    if len(agent_food) > 0:
+        return sum(agent_food)/len(agent_food)
+
 
 class FoodAgent(Agent):
     """An agent with fixed initial wealth."""
@@ -28,9 +36,6 @@ class FoodAgent(Agent):
             self.move()
             self.eat()
             self.hp -= 0.2+ 0.1 * self.hp
-
-
-
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False) #all the cells at dist = 1
@@ -79,7 +84,8 @@ class FoodModel(Model):
         self.grid = MultiGrid(width, height, True)
         self.running = True
 
-        self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat,
+        self.datacollector = DataCollector(model_reporters= {"Mean creature food": creature_food_stat,
+                                                             "Mean predator food": predator_food_stat,
                                                              "Number of creatures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"]),
                                                              "Number of predators": lambda x: len([agent for agent in x.schedule.agents if agent.type == "predator"])},
                                            agent_reporters={"Health": "hp"})
