@@ -25,6 +25,16 @@ def agent_portrayal(agent):
                      "Layer": 0,
                      "w": 0.5,
                      "h": 0.5}
+
+    elif agent.type == "predator":
+
+        portrayal = {"Shape": "rect",
+                     "Color": "black",
+                     "Filled": "true",
+                     "Layer": 0,
+                     "w": 0.7,
+                     "h": 0.7}
+
     else:
         portrayal = {"Shape": "circle",
                      "Color": "green",
@@ -44,7 +54,9 @@ if __name__ == '__main__':
     server = ModularServer(FoodModel,
                           [grid, chart_0, chart_1],
                           "Food Model",
-                          {"N": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1), "nf": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
+                          {"ncreatures": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1),
+                           "nfood": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
+                           "npred": UserSettableParameter("slider", "Food number", 5, 0, 200, 1),
                            "sight" : UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
                            "width": 100, "height": 100})
     server.port = 8521  # The default
