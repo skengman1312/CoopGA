@@ -190,7 +190,7 @@ class RunningFoodAgent(FoodAgent):
             nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
             move_vect = mov_vectorize(self.pos, nearest_food)
             if fear_vect:
-                move_vect = 0 #dot prod fear + move
+                move_vect = move_vect #dot prod fear + move
 
             #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
