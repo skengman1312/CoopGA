@@ -171,3 +171,94 @@ class CustomFoodAgent(FoodAgent):
     pass
 
 
+class RunningFoodAgent(FoodAgent):
+    """
+    Agent model with fear running from preds
+
+     """
+    def move(self):
+        """
+        function to move creatures and predators
+        """
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)  #all the cells at dist = 1
+        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
+        nb = [x.pos for x in nb if x.type == "food"] if self.type == "creature" \
+            else [x.pos for x in nb if x.type == "creature"]  # food ad distance r = sight, we may optimize it
+        fear_vect = self.panic()
+        if len(nb) > 0 or fear_vect:
+            mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
+            nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
+            move_vect = mov_vectorize(self.pos, nearest_food)
+            if fear_vect:
+                move_vect = 0 #dot prod fear + move
+
+            #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
+
+            if self.type == "predator":
+                self.hunt(nearest_food)
+                return
+            else:
+                vect_landing = [coord[0]-coord[1] for coord in zip(self.pos, move_vect)]
+                new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+        else:
+            new_position = self.random.choice(possible_steps)
+        self.model.grid.move_agent(self, new_position)
+
+    def panic(self):
+        mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
+        if self.type != "creature":
+            return None
+        else:
+            np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
+            np = [x.pos for x in np if x.type == "predator"]
+            nearest_predator = min(np, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+            return mov_vectorize(self.pos, nearest_predator)
+
+class RunningFoodModel(FoodModel):
+    """
+    Model to test running agent with fear
+
+    """
+    def __init__(self, ncreatures: int, nfood: int, npred: int, sight: int, width: int, height: int):
+        """
+        ncreatures: number of creatures
+        nfood: number of food
+        npred: number of predators
+        sight: sight of creatures and predators
+        """
+        self.num_agents = ncreatures
+        self.num_food = nfood
+        self.num_pred = npred
+        self.schedule = RandomActivation(self)
+        self.grid = MultiGrid(width, height, True)
+        self.running = True
+
+        self.datacollector = DataCollector(model_reporters= {"Mean creature food": creature_food_stat,
+                                                             "Mean predator food": predator_food_stat,
+                                                             "Number of creatures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"]),
+                                                             "Number of predators": lambda x: len([agent for agent in x.schedule.agents if agent.type == "predator"])},
+                                           agent_reporters={"Health": "hp"})
+        # Create agents
+        for i in range(self.num_agents):
+            a = RunningFoodAgent(i, self, "creature", sight= sight)
+            self.schedule.add(a)
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
+
+        for i in range(self.num_agents, self.num_agents + self.num_food):
+            a = RunningFoodAgent(i, self, "food")
+            self.schedule.add(a)
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
+
+        for i in range(self.num_agents + self.num_food, self.num_agents + self.num_food + self.num_pred):
+            a = RunningFoodAgent(i, self, "predator", sight= sight)
+            self.schedule.add(a)
+            # Add the agent to a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))

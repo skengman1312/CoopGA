@@ -1,6 +1,6 @@
 import sys
 sys.path.append('prova_0')
-from model import FoodModel
+from model import *
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Blue"}, {"Label": "Number of predators", "Color": "Red"}], data_collector_name='datacollector',
                         canvas_height=100, canvas_width=200)
 
-    server = ModularServer(FoodModel,
+    server = ModularServer(RunningFoodModel,
                           [grid, chart_0, chart_1],
                           "Food Model",
                           {"ncreatures": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1),
