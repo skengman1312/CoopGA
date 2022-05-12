@@ -25,7 +25,7 @@ class FoodAgent(Agent):
         if self.type == "creature":
             self.move()
             self.eat()
-            self.hp -= 0.2+ 0.1 * self.hp
+            self.hp -= 0.2 + 0.1 * self.hp
 
 
     def move(self):
