@@ -211,8 +211,11 @@ class RunningFoodAgent(FoodAgent):
         else:
             np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
             np = [x.pos for x in np if x.type == "predator"]
-            nearest_predator = min(np, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            return mov_vectorize(self.pos, nearest_predator)
+            if np:
+                nearest_predator = min(np, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+                return mov_vectorize(self.pos, nearest_predator)
+            else:
+                return None
 
 class RunningFoodModel(FoodModel):
     """
