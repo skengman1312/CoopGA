@@ -187,10 +187,12 @@ class RunningFoodAgent(FoodAgent):
         fear_vect = self.panic()
         if len(nb) > 0 or fear_vect:
             mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-            nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
-            move_vect = mov_vectorize(self.pos, nearest_food)
+            move_vect = None
+            if len(nb) > 0:
+                nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
+                move_vect = mov_vectorize(self.pos, nearest_food)
             if fear_vect:
-                move_vect = move_vect #dot prod fear + move
+                move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect #sum prod fear + move
 
             #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
@@ -213,7 +215,7 @@ class RunningFoodAgent(FoodAgent):
             np = [x.pos for x in np if x.type == "predator"]
             if np:
                 nearest_predator = min(np, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-                return mov_vectorize(self.pos, nearest_predator)
+                return mov_vectorize(self.pos, [-x for x in nearest_predator])
             else:
                 return None
 
