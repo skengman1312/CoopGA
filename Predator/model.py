@@ -177,6 +177,7 @@ class RunningFoodAgent(FoodAgent):
 
      """
     def move(self):
+        #### TODO: use numpy for the fector representation
         """
         function to move creatures and predators
         """
