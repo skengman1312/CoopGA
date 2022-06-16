@@ -1,4 +1,4 @@
-from model import FoodModel
+from old_model import FoodModel
 from mesa.batchrunner import batch_run
 import pandas as pd
 from mesa.visualization.modules import CanvasGrid
