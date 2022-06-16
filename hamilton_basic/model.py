@@ -1,97 +1,82 @@
+import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
-from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
-from math import sqrt
+from mesa.time import BaseScheduler
+
+fam_id = -1
 
 
-def food_stat(model):
-    agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "creature"]
-    if len(agent_food) > 0:
-        return sum(agent_food)/len(agent_food)
+class SocialActivation(BaseScheduler):
+    """A scheduler which activates each agent once per step, in random order,
+    with the order reshuffled every step but only activate the actors.
 
-class FoodAgent(Agent):
-    """An agent with fixed initial wealth."""
+    Assumes that all agents have a step(model) method.
 
-    def __init__(self, unique_id, model, type, sight = None):
+    """
+
+    def step(self, actors) -> None:
+        """Executes the step of all agents, one at a time, in
+        random order.
+
+        """
+        for agent in self.agent_buffer(shuffled=True):
+            if agent.unique_id in actors:
+                agent.step()
+        self.steps += 1
+        self.time += 1
+
+
+class FamilyAgent(Agent):
+    """
+    an agent to simulate the altruistic behaviour based on relatedness
+    """
+
+    def __init__(self, unique_id, model, genotype: int, family_id: int):
+        """
+        genotype: 1 codes for altruism 0 for cowardice
+        """
         super().__init__(unique_id, model)
-        self.hp = 5
-        self.type = type
-        self.sight = sight
+        self.genotype = genotype
+        self.family = family_id
 
-    def step(self):
-        # The agent's step will go here.
-        # For demonstration purposes we will print the agent's unique_id
-        if self.type == "creature":
-            self.move()
-            self.eat()
-            self.hp -= 0.2 + 0.1 * self.hp
+    def step(self) -> None:
+        self.altruistic_action()
 
-
-    def move(self):
-        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False) #all the cells at dist = 1
-        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
-        nb = [x.pos for x in nb if x.type == "food"] #food ad distance r = sight, we may optimize it
-
-        if len(nb) > 0:
-            nearest_food = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
-
-            new_position = min(possible_steps, key=lambda x: sqrt(((nearest_food[0] - x[0]) ** 2) + ((nearest_food[1] - x[1]) ** 2)))
-        else:
-            new_position = self.random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)
-
-    def eat(self):
-        cellmates = self.model.grid.get_cell_list_contents([self.pos])
-        for a in cellmates:
-            if a.type == "food":
-                self.model.grid.move_to_empty(a)
-                self.hp += 5
-                break
+    def altruistic_action(self):
+        """
+        Implementation of a generic altruistic action
+        """
+        return {"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
 
 
-class FoodModel(Model):
-    """A model with some number of agents."""
+class FamilyModel(Model):
+    """
+    a model for simulation of the evolution of family related altruism
+    """
 
-    def __init__(self, N, nf,sight, width, height):
-        self.num_agents = N
-        self.num_food = nf
+    def __init__(self, N=500, r=0.5):
+        """
+        N: total number of agents
+        r: initial ratio of altruistic allele
+        """
         self.schedule = RandomActivation(self)
-        self.grid = MultiGrid(width, height, True)
-        self.running = True
+        # TODO: look-up better scheduler more suited to avoid useless computations
+        # TODO: add datacollector
 
-        self.datacollector = DataCollector(model_reporters= {"Mean food": food_stat,
-                                                             "Number of creatures": lambda x: len([agent for agent in x.schedule.agents if agent.type == "creature"])},
-                                           agent_reporters={"Health": "hp"})
-        # Create agents
-        for i in range(self.num_agents):
-            a = FoodAgent(i, self, "creature", sight= sight)
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+        for i in range(N * r):
+            agent = FamilyAgent(i, self, 1, i)
+            self.schedule.add(agent)
 
-        for i in range(self.num_agents, self.num_agents + self.num_food):
-            a = FoodAgent(i, self, "food")
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+        for i in range(N * r, N):
+            agent = FamilyAgent(i, self, 0, i)
+            self.schedule.add(agent)
 
+        self.reproduce()
+        # TODO: reproduction method
 
+    def step(self) -> None:
+        # creating the "interaction rooms"
+        rooms = {}
+        # reproduction part
 
-    def step(self):
-        """Advance the model by one step."""
-        self.datacollector.collect(self)
-        self.schedule.step()
-        for a in self.schedule.agents:
-            if a.hp <= 0:
-                self.grid.remove_agent(a)
-                self.schedule.remove(a)
-        if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
-            self.running = False
-
-
-
+        # mesa.time.RandomActivationByType
