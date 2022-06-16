@@ -31,7 +31,7 @@ class FamilyAgent(Agent):
     an agent to simulate the altruistic behaviour based on relatedness
     """
 
-    def __init__(self, unique_id, model, genotype: int, family_id: int):
+    def __init__(self, unique_id, model, genotype, family_id: int):
         """
         genotype: 1 codes for altruism 0 for cowardice
         """
@@ -60,19 +60,29 @@ class FamilyModel(Model):
         r: initial ratio of altruistic allele
         """
         self.schedule = RandomActivation(self)
+        self.N = N
         # TODO: look-up better scheduler more suited to avoid useless computations
         # TODO: add datacollector
 
-        for i in range(N * r):
+        for i in range(int(N * r)):
             agent = FamilyAgent(i, self, 1, i)
             self.schedule.add(agent)
 
-        for i in range(N * r, N):
+        for i in range(int(N * r), N):
             agent = FamilyAgent(i, self, 0, i)
             self.schedule.add(agent)
 
         self.reproduce()
         # TODO: reproduction method
+
+    def reproduce(self):
+        mating_id = random.sample([agent for agent in self.schedule.agents], k=self.N)
+        mating_pairs = [(mating_id[i], mating_id[i + len(mating_id) // 2]) for i in range(len(mating_id) // 2)]
+        print(len(set(mating_id)))
+        print(mating_pairs)
+        newgen = [{}]
+
+        pass
 
     def step(self) -> None:
         # creating the "interaction rooms"
@@ -80,3 +90,7 @@ class FamilyModel(Model):
         # reproduction part
 
         # mesa.time.RandomActivationByType
+
+
+if __name__ == "__main__":
+    model = FamilyModel()
