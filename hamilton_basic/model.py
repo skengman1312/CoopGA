@@ -22,6 +22,7 @@ class SocialActivation(BaseScheduler):
         for agent in self.agent_buffer(shuffled=True):
             if agent.unique_id in actors:
                 agent.step()
+
         self.steps += 1
         self.time += 1
 
@@ -46,7 +47,14 @@ class FamilyAgent(Agent):
         """
         Implementation of a generic altruistic action
         """
-        return {"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
+        if self.genotype:
+            if random.random() > 0.95:
+                return
+            else:
+                self.model.schedule.remove(self)
+        else:
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() if a.family == self.family and a.unique_id != self.unique_id]
+        #return {"family": self.family,"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
 
 
 class FamilyModel(Model):
@@ -59,7 +67,7 @@ class FamilyModel(Model):
         N: total number of agents
         r: initial ratio of altruistic allele
         """
-        self.schedule = RandomActivation(self)
+        self.schedule = SocialActivation(self)
         self.N = N
 
         # TODO: add datacollector
@@ -81,18 +89,29 @@ class FamilyModel(Model):
         """
         mating_ind = random.sample([agent for agent in self.schedule.agents], k=self.N)
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
-        print(len(set(mating_ind)))
-        print(mating_pairs)
-        newgen = [{"genotype": random.choice([a.genotype for a in p]), "family": p[0].unique_id}  for p in
+        # print(len(set(mating_ind)))
+        # print(mating_pairs)
+        mutate = lambda x: x if random.random() < 0.8 else 1 - x  # 0.8 is 1-mutation rate: 1-0.2 = 0.8
+        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(4)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
-        [self.schedule.add(FamilyAgent(i,self,newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
+        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in
+         range(len(newgen))]
 
 
     def step(self) -> None:
         # creating the "interaction rooms"
-        # danger_rooms = self.N // 3
-        rooms = {}
+        danger_number = self.N // 3  # we derived it from the wcs to have at least 500 individuals left,
+        # it has to be generalized for n chiild, now takes as granted 4 childs
+        ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
+        danger_fam = random.sample(ufid, danger_number)
+        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f] for f in danger_fam]
+        active = [random.choice(r).unique_id for r in rooms]
+        print([(a.unique_id, a.genotype) for a in rooms[0]])
+        print(active[0])
+        self.schedule.step(active)
+        print([a.family for a in self.schedule.agent_buffer()].count(rooms[0][0].family))
+        self.reproduce()
         # reproduction part
 
         # mesa.time.RandomActivationByType
@@ -100,3 +119,4 @@ class FamilyModel(Model):
 
 if __name__ == "__main__":
     model = FamilyModel()
+    model.step()
