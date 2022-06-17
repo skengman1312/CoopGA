@@ -91,7 +91,7 @@ class FamilyModel(Model):
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
-        mutate = lambda x: x if random.random() < 0.8 else 1 - x  # 0.8 is 1-mutation rate: 1-0.2 = 0.8
+        mutate = lambda x: x if random.random() < 0.97 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(4)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
@@ -107,10 +107,10 @@ class FamilyModel(Model):
         danger_fam = random.sample(ufid, danger_number)
         rooms = [[x for x in self.schedule.agent_buffer() if x.family == f] for f in danger_fam]
         active = [random.choice(r).unique_id for r in rooms]
-        print([(a.unique_id, a.genotype) for a in rooms[0]])
-        print(active[0])
+        #print([(a.unique_id, a.genotype) for a in rooms[0]])
+        #print(active[0])
         self.schedule.step(active)
-        print([a.family for a in self.schedule.agent_buffer()].count(rooms[0][0].family))
+        #print([a.family for a in self.schedule.agent_buffer()].count(rooms[0][0].family))
         self.reproduce()
         # reproduction part
 
@@ -119,4 +119,10 @@ class FamilyModel(Model):
 
 if __name__ == "__main__":
     model = FamilyModel()
-    model.step()
+    print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
+    print(set([a.genotype for a in model.schedule.agent_buffer()]))
+    for i in range(400):
+        model.step()
+    print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1])/model.schedule.get_agent_count() )
+    print(set([a.genotype for a in model.schedule.agent_buffer()]))
+    print("yee")
