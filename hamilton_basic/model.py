@@ -61,7 +61,7 @@ class FamilyModel(Model):
         """
         self.schedule = RandomActivation(self)
         self.N = N
-        # TODO: look-up better scheduler more suited to avoid useless computations
+
         # TODO: add datacollector
 
         for i in range(int(N * r)):
@@ -76,16 +76,22 @@ class FamilyModel(Model):
         # TODO: reproduction method
 
     def reproduce(self):
-        mating_id = random.sample([agent for agent in self.schedule.agents], k=self.N)
-        mating_pairs = [(mating_id[i], mating_id[i + len(mating_id) // 2]) for i in range(len(mating_id) // 2)]
-        print(len(set(mating_id)))
+        """
+        function to generate the new population from the parent individuals
+        """
+        mating_ind = random.sample([agent for agent in self.schedule.agents], k=self.N)
+        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
+        print(len(set(mating_ind)))
         print(mating_pairs)
-        newgen = [{}]
+        newgen = [{"genotype": random.choice([a.genotype for a in p]), "family": p[0].unique_id}  for p in
+                  mating_pairs for i in range(4)]
+        [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
+        [self.schedule.add(FamilyAgent(i,self,newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
-        pass
 
     def step(self) -> None:
         # creating the "interaction rooms"
+        # danger_rooms = self.N // 3
         rooms = {}
         # reproduction part
 
