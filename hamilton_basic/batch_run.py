@@ -1,4 +1,4 @@
-from old_model import FoodModel
+from model import FamilyModel
 from mesa.batchrunner import batch_run
 import pandas as pd
 from mesa.visualization.modules import CanvasGrid
@@ -8,18 +8,22 @@ from mesa.visualization.modules import ChartModule
 
 
 if __name__ == '__main__':
-    params = {"N": range(150, 200, 10),
-              "nf": range(150, 200, 10),
-              "sight" : range(15,20,2),
-              "width": 100, "height": 100}
+    params = {"N": 1000,#range(500, 1100, 100),
+              "r": 0.5#[i*0.1 for i in range(2, 7, 1)]
+
+              }
     results = batch_run(
-        FoodModel,
+        FamilyModel,
         parameters=params,
         iterations=5,
-        max_steps=100,
+        max_steps=1000,
         number_processes=None,
-        data_collection_period=-1,
+        data_collection_period=1,
         display_progress=True,
     )
     results_df = pd.DataFrame(results)
+    print(results_df)
+    results_df.to_csv("result.csv")
+
+
 #prova
