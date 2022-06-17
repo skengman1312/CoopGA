@@ -2,7 +2,7 @@ import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.time import BaseScheduler
-
+from mesa.datacollection import DataCollector
 fam_id = -1
 
 
@@ -69,7 +69,8 @@ class FamilyModel(Model):
         """
         self.schedule = SocialActivation(self)
         self.N = N
-
+        self.running = True
+        self.datacollector = DataCollector(model_reporters={"altruistic fraction" : lambda x:  len([a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count() })
         # TODO: add datacollector
 
         for i in range(int(N * r)):
@@ -81,7 +82,6 @@ class FamilyModel(Model):
             self.schedule.add(agent)
 
         self.reproduce()
-        # TODO: reproduction method
 
     def reproduce(self):
         """
@@ -112,6 +112,8 @@ class FamilyModel(Model):
         self.schedule.step(active)
         #print([a.family for a in self.schedule.agent_buffer()].count(rooms[0][0].family))
         self.reproduce()
+        self.datacollector.collect(self)
+
         # reproduction part
 
         # mesa.time.RandomActivationByType
@@ -120,9 +122,7 @@ class FamilyModel(Model):
 if __name__ == "__main__":
     model = FamilyModel()
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
-    print(set([a.genotype for a in model.schedule.agent_buffer()]))
     for i in range(400):
         model.step()
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1])/model.schedule.get_agent_count() )
-    print(set([a.genotype for a in model.schedule.agent_buffer()]))
     print("yee")
