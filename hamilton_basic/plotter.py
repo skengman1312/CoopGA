@@ -28,8 +28,8 @@ def plot_prevalence(data):
     plt.axis((0,ms,0,1))
     #filling the background wrt mean line
     plt.legend(loc='best', framealpha = 0.2)
-    plt.fill_between(list(range(-1,ms)), lines["mean"], y2=1, color ="#595FB5", alpha = 0.9 )
-    plt.fill_between(list(range(-1,ms)), lines["mean"], color="#4DBD60", alpha=0.9)
+    plt.fill_between(list(range(0,ms +1)), lines["mean"], y2=1, color ="#595FB5", alpha = 0.9 )
+    plt.fill_between(list(range(0,ms +1)), lines["mean"], color="#4DBD60", alpha=0.9)
     for spine in plt.gca().spines.values():
         spine.set_visible(False)
     plt.xlabel("Steps")

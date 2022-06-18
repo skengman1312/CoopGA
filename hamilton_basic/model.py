@@ -48,7 +48,7 @@ class FamilyAgent(Agent):
         Implementation of a generic altruistic action
         """
         if self.genotype:
-            if random.random() > 0.95:
+            if random.random() > 0.9:
                 return
             else:
                 self.model.schedule.remove(self)
@@ -91,7 +91,7 @@ class FamilyModel(Model):
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
-        mutate = lambda x: x if random.random() < 0.97 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+        mutate = lambda x: x if random.random() < 0.99 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(4)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
