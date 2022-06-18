@@ -99,8 +99,7 @@ class FamilyModel(Model):
          range(len(newgen))]
 
     def step(self) -> None:
-        # creating the "interaction rooms"
-        danger_number = self.N // 3  # we derived it from the wcs to have at least 500 individuals left,
+        # creating the "interaction rooms"we derived it from the wcs to have at least 500 individuals left,
         # it has to be generalized for n child, now takes as granted 4 childs
         ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
         danger_fam = random.sample(ufid, danger_number)

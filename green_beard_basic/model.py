@@ -90,7 +90,7 @@ class BeardModel(Model):
             #print("hanno bombato")
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
-
+        # TODO add mutation
 
     def step(self) -> None:
 
