@@ -15,10 +15,10 @@ if __name__ == '__main__':
     results = batch_run(
         FamilyModel,
         parameters=params,
-        iterations=5,
-        max_steps=1000,
+        iterations=10,
+        max_steps=1500,
         number_processes=None,
-        data_collection_period=1,
+        data_collection_period=-1,
         display_progress=True,
     )
     results_df = pd.DataFrame(results)
