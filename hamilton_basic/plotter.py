@@ -14,7 +14,7 @@ def plot_prevalence(data):
     data = data.drop(columns = ["N", "r", "RunId"])
     #masking the values of each iteration
     msk = [data["iteration"] == i for i in data["iteration"].unique()] #creating a boolean mask for each iteration to be plotted
-
+    ms = data["Step"].max() #max step
     #groupling all the lines in a single df without other data
     lines = pd.DataFrame(data = { m: data[msk[m]]["altruistic fraction"].reset_index(drop=True) for m in range(len(msk))})
     #computing the mean
@@ -25,11 +25,11 @@ def plot_prevalence(data):
     # plotting mean in red
     plt.plot(lines["mean"], color = "red", lw = 0.5, label = "mean")
     #setting plot limits
-    plt.axis((0,500,0,1))
+    plt.axis((0,ms,0,1))
     #filling the background wrt mean line
     plt.legend(loc='best', framealpha = 0.2)
-    plt.fill_between(list(range(-1,500)), lines["mean"], y2=1, color ="#595FB5", alpha = 0.9 )
-    plt.fill_between(list(range(-1,500)), lines["mean"], color="#4DBD60", alpha=0.9)
+    plt.fill_between(list(range(-1,ms)), lines["mean"], y2=1, color ="#595FB5", alpha = 0.9 )
+    plt.fill_between(list(range(-1,ms)), lines["mean"], color="#4DBD60", alpha=0.9)
     for spine in plt.gca().spines.values():
         spine.set_visible(False)
     plt.xlabel("Steps")
@@ -37,7 +37,6 @@ def plot_prevalence(data):
 
 
     plt.show()
-    print(lines)
     pass
 
 
@@ -93,6 +92,6 @@ def scatter3D(data, param1, param2, result, labels):
 
 labels = ["population size",
           "initial freq altruism", "ending freq altruism"]
-scatter3D(data, "N", "r", "altruistic fraction", labels)
+#scatter3D(data, "N", "r", "altruistic fraction", labels)
 
 plot_prevalence(data)
