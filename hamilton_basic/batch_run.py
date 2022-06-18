@@ -3,7 +3,7 @@ from mesa.batchrunner import batch_run
 import pandas as pd
 
 if __name__ == '__main__':
-    params = {"N": 2000,#range(500, 1100, 100),
+    params = {"N": 1000,#range(500, 1100, 100),
               "r": 0.01#[i*0.1 for i in range(2, 7, 1)]
 
               }

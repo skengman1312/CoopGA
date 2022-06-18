@@ -48,7 +48,7 @@ class FamilyAgent(Agent):
         Implementation of a generic altruistic action
         """
         if self.genotype:
-            if random.random() > 0.9:
+            if random.random() > 0.999:
                 return
             else:
                 self.model.schedule.remove(self)
