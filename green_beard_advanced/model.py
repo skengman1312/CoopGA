@@ -3,7 +3,6 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.time import BaseScheduler
 
-
 import random
 from mesa import Agent, Model
 from mesa.datacollection import DataCollector
@@ -39,12 +38,20 @@ class BeardAgent(Agent):
     def __init__(self, unique_id, model, genotype):
         """
         genotype: 1 gene with 2 alleles (a list of 2 integers)
-        allele1: codes for altruism 0 for cowardice
+        allele1: 1 codes for altruism 0 for cowardice
         allele2: 1 code for beard 0 for non beard
         """
         super().__init__(unique_id, model)
         self.genotype = genotype
 
+
+def crossover(agent1, agent2):
+    """
+    RECOMBINATION (CROSSOVER) one point
+    """
+    allele1 = agent1.genotype[0]
+    allele2 = agent2.genotype[1]
+    return [allele1, allele2]
 
 
 class BeardModel(Model):
@@ -66,66 +73,61 @@ class BeardModel(Model):
         # TODO: add datacollector
 
         for i in range(int(N * r)):
-            agent = BeardAgent(i, self, [1,1])
+            agent = BeardAgent(i, self, [1, 1])
             self.schedule.add(agent)
 
-        for i in range(int(N * r), 2*int(N * r) ):
+        for i in range(int(N * r), 2 * int(N * r)):
             agent = BeardAgent(i, self, [1, 0])
             self.schedule.add(agent)
 
-        for i in range(2*int(N * r), 3*int(N * r) ):
+        for i in range(2 * int(N * r), 3 * int(N * r)):
             agent = BeardAgent(i, self, [0, 1])
             self.schedule.add(agent)
 
-        for i in range(3*int(N * r), N):
+        for i in range(3 * int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
             self.schedule.add(agent)
 
         self.reproduce()
         # TODO: reproduction method
 
-    def crossover(self, agent1, agent2):
-        """
-        RECOMBINATION (CROSSOVER) one point
-        """
-        allele1 = agent1.genotype[0]
-        allele2 = agent2.genotype[1]
-        return [allele1, allele2]
-
-
-    def reproduce(self, max_child=4, cross_prob = 0.02):
+    def reproduce(self, max_child=4, cross_prob=0.02):
         """
         function to generate the new population from the parent individuals
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
         randomly from one of the 2 parents
         """
-        #print()
-        agents = random.sample([agent for agent in self.schedule.agents], k= len(self.schedule.agents))
-        for i in range(0, len(agents)-1, 2):
+        # print()
+        agents = random.sample([agent for agent in self.schedule.agents], k=len(self.schedule.agents))
+        for i in range(0, len(agents) - 1, 2):
+            self.tot_N += 1
             agent1 = agents[i]
-            agent2 = agents[i+1]
+            agent2 = agents[i + 1]
+            n_child = random.randint(2, max_child)
 
-            if random.random() < cross_prob:
-                child_genotype = crossover(self, agent1, agent2)
-            else:
-                child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
+            for j in range(n_child):
+                self.tot_N += 1
+                if random.random() < cross_prob:
+                    child_genotype = crossover(agent1, agent2)
+                else:
+                    child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
 
-            child = BeardAgent(self.tot_N, self, child_genotype)
-            self.schedule.add(child)
+                child = BeardAgent(self.tot_N, self, child_genotype)
+                self.schedule.add(child)
             # print("è natooo")
             # print("hanno bombato")
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
-
 
     def step(self) -> None:
 
         # creating the "interaction rooms"
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
-        #print("N: ", num_agents)
-        danger_number = num_agents // 1.5  # we derived it from the wcs to have at least 500 individuals left,
-        danger_dict = {}  # dictionary in which the key is the room number and the value is the list of individuals in that room
+        # print("N: ", num_agents)
+        danger_number = num_agents // 1.9  # we derived it from the wcs to have at least 500 individuals left,
+        danger_dict = {}
+        # dictionary in which the key is the room number and the value is the list of individuals in that room
         for i in range(int(danger_number)):
             danger_dict[i] = []
 
@@ -154,11 +156,12 @@ class BeardModel(Model):
                 agent2 = value[1]
                 gen1 = agent1.genotype
                 gen2 = agent2.genotype
-                if gen1 and gen2:  # both green beard
-                    if random.random() < 0.50: # die with 0.50 probability
+
+                if gen1[0] and gen2[1]:  #agent1 is altruistic and gen2 has green beard
+                    if random.random() < 0.50:  # die with 0.50 probability
                         self.schedule.remove(agent1)
-                else:  # both cowardice or 1 cowardice and 1 altruistic, one of the 2 dies.
-                    self.schedule.remove(agent1)
+                else:
+                    self.schedule.remove(agent2)
 
         self.reproduce()
         # self.datacollector.collect(self)
@@ -166,22 +169,29 @@ class BeardModel(Model):
 
 if __name__ == "__main__":
     model = BeardModel()
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count()) # freq TRUE BEARDS
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 0]) / model.schedule.get_agent_count()) # freq SUCKERS
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 1]) / model.schedule.get_agent_count()) # freq IMPOSTORS
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count()) # freq COWARDS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 1 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq SUCKERS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 0 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq IMPOSTORS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
     # initial frequency of green beard allele
-    for i in range(40):
-        print("step: ", i)
+    for i in range(400):
+        #print("step: ", i)
         model.step()
     print("number of agents: ", model.schedule.get_agent_count())
 
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 1] ) / model.schedule.get_agent_count())
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 0] ) / model.schedule.get_agent_count())
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 1] ) / model.schedule.get_agent_count())
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0] ) / model.schedule.get_agent_count())
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 1 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq SUCKERS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 0 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq IMPOSTORS
+    print(len([a for a in model.schedule.agent_buffer() if
+               a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
     # frequency of green beard allele
     print("yee")
-
