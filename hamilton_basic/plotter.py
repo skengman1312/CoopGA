@@ -1,7 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-print("Forza Fiacca")
-
-print("ciao pietro")
-#bla
+data = pd.read_csv("result.csv")
+print(data)
