@@ -50,6 +50,7 @@ class BeardModel(Model):
         """
         self.schedule = RandomActivation(self)
         self.N = N
+        self.tot_N = N
         # self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
         #     [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
 
@@ -66,40 +67,40 @@ class BeardModel(Model):
         self.reproduce()
         # TODO: reproduction method
 
-    def reproduce(self):
+    def reproduce(self, max_child=4):
         """
         function to generate the new population from the parent individuals
+        select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
+        randomly from one of the 2 parents
         """
-        agents = self.schedule.agents
+        #print()
+        agents = random.sample([agent for agent in self.schedule.agents], k= len(self.schedule.agents))
+
         for i in range(0, len(agents)-1, 2):
             agent1 = agents[i]
-            child1 = agent1
-            self.schedule.remove(agent1)
             agent2 = agents[i+1]
-            child2 = agent2
-            self.schedule.remove(agent2)
-            # deccide genotype of child1
-            if random.random() > 0.50:
-                child1.genotype = agent1.genotype
-            else:
-                child1.genotype = agent2.genotype
-            # decide genotype of child2
-            if random.random() > 0.50:
-                child1.genotype = agent1.genotype
-            else:
-                child1.genotype = agent2.genotype
-            self.schedule.add(child1)
-            self.schedule.add(child2)
+            n_child = random.randint(2, max_child)
 
-        # two blobs create two new blobs, they will randomly pass their gene
+            for j in range(n_child):
+                self.tot_N += 1
+                child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
+                child = BeardAgent(self.tot_N, self, child_genotype)
+                self.schedule.add(child)
+                #print("è natooo")
+            #print("hanno bombato")
+            self.schedule.remove(agent1)
+            self.schedule.remove(agent2)
 
 
     def step(self) -> None:
+
         # creating the "interaction rooms"
-        rooms_number = self.N  # tot number of rooms
-        danger_number = self.N // 3  # we derived it from the wcs to have at least 500 individuals left,
+        num_agents = len(self.schedule.agents)
+        rooms_number = num_agents  # tot number of rooms
+        #print("N: ", num_agents)
+        danger_number = num_agents // 1.5  # we derived it from the wcs to have at least 500 individuals left,
         danger_dict = {}  # dictionary in which the key is the room number and the value is the list of individuals in that room
-        for i in range(danger_number):
+        for i in range(int(danger_number)):
             danger_dict[i] = []
 
         # assign each agent to a tree
@@ -139,8 +140,11 @@ class BeardModel(Model):
 if __name__ == "__main__":
     model = BeardModel()
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
-    for i in range(10):
+    # initial frequency of green beard allele
+    for i in range(400):
+        print("step: ", i)
         model.step()
     print("number of agents: ", model.schedule.get_agent_count())
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1])/model.schedule.get_agent_count() )
+    # frequency of green beard allele
     print("yee")
