@@ -54,7 +54,7 @@ class FamilyAgent(Agent):
                 self.model.schedule.remove(self)
         else:
             [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() if a.family == self.family and a.unique_id != self.unique_id]
-        #return {"family": self.family,"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
+        # return {"family": self.family,"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
 
 
 class FamilyModel(Model):
