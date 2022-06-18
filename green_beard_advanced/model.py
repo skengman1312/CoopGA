@@ -2,8 +2,6 @@ import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.time import BaseScheduler
-from mesa.datacollection import DataCollector
-fam_id = -1
 
 
 class SocialActivation(BaseScheduler):
@@ -22,23 +20,22 @@ class SocialActivation(BaseScheduler):
         for agent in self.agent_buffer(shuffled=True):
             if agent.unique_id in actors:
                 agent.step()
-
         self.steps += 1
         self.time += 1
 
 
-class FamilyAgent(Agent):
+class BeardAgent(Agent):
     """
     an agent to simulate the altruistic behaviour based on relatedness
     """
 
-    def __init__(self, unique_id, model, genotype, family_id: int):
+    def __init__(self, unique_id, model, genotype1, genotype2):
         """
         genotype: 1 codes for altruism 0 for cowardice
         """
         super().__init__(unique_id, model)
-        self.genotype = genotype
-        self.family = family_id
+        self.genotype1 = genotype1 #altruistic gene
+        self.genotype2 = genotype2 #green beard gene
 
     def step(self) -> None:
         self.altruistic_action()
@@ -47,14 +44,7 @@ class FamilyAgent(Agent):
         """
         Implementation of a generic altruistic action
         """
-        if self.genotype:
-            if random.random() > 0.95:
-                return
-            else:
-                self.model.schedule.remove(self)
-        else:
-            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() if a.family == self.family and a.unique_id != self.unique_id]
-        # return {"family": self.family,"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
+        return {"action": bool(self.genotype1), "survival": random.random() > 0.95 if self.genotype1 else True}
 
 
 class FamilyModel(Model):
@@ -67,10 +57,9 @@ class FamilyModel(Model):
         N: total number of agents
         r: initial ratio of altruistic allele
         """
-        self.schedule = SocialActivation(self)
+        self.schedule = RandomActivation(self)
         self.N = N
-        self.running = True
-        self.datacollector = DataCollector(model_reporters={"altruistic fraction" : lambda x:  len([a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count() })
+
         # TODO: add datacollector
 
         for i in range(int(N * r)):
@@ -82,6 +71,7 @@ class FamilyModel(Model):
             self.schedule.add(agent)
 
         self.reproduce()
+        # TODO: reproduction method
 
     def reproduce(self):
         """
@@ -89,30 +79,18 @@ class FamilyModel(Model):
         """
         mating_ind = random.sample([agent for agent in self.schedule.agents], k=self.N)
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
-        # print(len(set(mating_ind)))
-        # print(mating_pairs)
-        mutate = lambda x: x if random.random() < 0.8 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
-        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
+        print(len(set(mating_ind)))
+        print(mating_pairs)
+        newgen = [{"genotype": random.choice([a.genotype for a in p]), "family": p[0].unique_id}  for p in
                   mating_pairs for i in range(4)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
-        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in
-         range(len(newgen))]
+        [self.schedule.add(FamilyAgent(i,self,newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
 
     def step(self) -> None:
         # creating the "interaction rooms"
-        danger_number = self.N // 3  # we derived it from the wcs to have at least 500 individuals left,
-        # it has to be generalized for n child, now takes as granted 4 childs
-        ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
-        danger_fam = random.sample(ufid, danger_number)
-        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f] for f in danger_fam]
-        active = [random.choice(r).unique_id for r in rooms]
-
-        self.schedule.step(active)
-
-        self.reproduce()
-        self.datacollector.collect(self)
-
+        # danger_rooms = self.N // 3
+        rooms = {}
         # reproduction part
 
         # mesa.time.RandomActivationByType
@@ -120,8 +98,3 @@ class FamilyModel(Model):
 
 if __name__ == "__main__":
     model = FamilyModel()
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
-    for i in range(400):
-        model.step()
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1])/model.schedule.get_agent_count() )
-    print("yee")
