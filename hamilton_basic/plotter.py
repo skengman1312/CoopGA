@@ -12,12 +12,12 @@ def plot_prevalence(data):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
-    data = data.drop(columns=["N", "r", "RunId"])
+    #data = data.drop(columns=["N", "r", "RunId"])
     # masking the values of each iteration
     # creating a boolean mask for each iteration to be plotted
     msk = [data["iteration"] == i for i in data["iteration"].unique()]
     ms = data["Step"].max()  # max step
-    # groupling all the lines in a single df without other data
+    # grouping all the lines in a single df without other data
     lines = pd.DataFrame(data={m: data[msk[m]]["altruistic fraction"].reset_index(
         drop=True) for m in range(len(msk))})
     # computing the mean
@@ -39,7 +39,8 @@ def plot_prevalence(data):
         spine.set_visible(False)
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency")
-
+    plt.title(f"Kinship altruism\nN={data['N'][0]} r={data['r'][0]} dr={data['sr'][0]} mr={data['mr'][0]} ")
+    plt.savefig('results.png')
     plt.show()
     pass
 

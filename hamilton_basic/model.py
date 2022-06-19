@@ -40,6 +40,7 @@ class FamilyAgent(Agent):
         self.genotype = genotype
         self.family = family_id
 
+
     def step(self) -> None:
         self.altruistic_action()
 
@@ -48,7 +49,7 @@ class FamilyAgent(Agent):
         Implementation of a generic altruistic action
         """
         if self.genotype:
-            if random.random() > 0.95:
+            if random.random() > self.model.sr:
                 return
             else:
                 self.model.schedule.remove(self)
@@ -62,13 +63,17 @@ class FamilyModel(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.5):
+    def __init__(self, N=500, r=0.5, sr=0.95, mr=0.001):
         """
         N: total number of agents
         r: initial ratio of altruistic allele
+        sr: survival rate
+        mr: mutation rate
         """
         self.schedule = SocialActivation(self)
         self.N = N
+        self.mr = mr
+        self.sr = sr
         self.running = True
         self.datacollector = DataCollector(model_reporters={"altruistic fraction" : lambda x:  len([a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count() })
 
@@ -91,7 +96,7 @@ class FamilyModel(Model):
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
-        mutate = lambda x: x if random.random() < 0.97 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+        mutate = lambda x: x if random.random() > self.mr else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
@@ -118,7 +123,7 @@ class FamilyModel(Model):
 
 
 if __name__ == "__main__":
-    model = FamilyModel(r = 0.5)
+    model = FamilyModel()
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
     for i in range(400):
         model.step()
