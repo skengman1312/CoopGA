@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import *
 import numpy as np
 
-data = pd.read_csv("hamilton_basic/result.csv", index_col=0)
+data = pd.read_csv("result.csv", index_col=0)
 print(data)
 
 
@@ -38,7 +38,7 @@ def plot_prevalence(data):
     for spine in plt.gca().spines.values():
         spine.set_visible(False)
     plt.xlabel("Steps")
-    plt.ylabel("Population fraction")
+    plt.ylabel("Allele frequency")
 
     plt.show()
     pass
@@ -93,6 +93,6 @@ def scatter3D(data, param1, param2, result, labels):
 
 labels = ["population size",
           "initial freq altruism", "ending freq altruism"]
-scatter3D(data, "N", "r", "altruistic fraction", labels)
+#scatter3D(data, "N", "r", "altruistic fraction", labels)
 
-# plot_prevalence(data)
+plot_prevalence(data)

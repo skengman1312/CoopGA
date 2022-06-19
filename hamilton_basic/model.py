@@ -48,7 +48,7 @@ class FamilyAgent(Agent):
         Implementation of a generic altruistic action
         """
         if self.genotype:
-            if random.random() > 0.999:
+            if random.random() > 0.95:
                 return
             else:
                 self.model.schedule.remove(self)
@@ -71,7 +71,7 @@ class FamilyModel(Model):
         self.N = N
         self.running = True
         self.datacollector = DataCollector(model_reporters={"altruistic fraction" : lambda x:  len([a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count() })
-        # TODO: add datacollector
+
 
         for i in range(int(N * r)):
             agent = FamilyAgent(i, self, 1, i)
@@ -91,16 +91,16 @@ class FamilyModel(Model):
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
-        mutate = lambda x: x if random.random() < 0.99 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+        mutate = lambda x: x if random.random() < 0.97 else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
-                  mating_pairs for i in range(4)]
+                  mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
         [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in
          range(len(newgen))]
 
     def step(self) -> None:
         # creating the "interaction rooms"
-        danger_number = self.N // 3  # we derived it from the wcs to have at least 500 individuals left,
+        danger_number = self.N // 4  # we derived it from the wcs to have at least 500 individuals left,
         # it has to be generalized for n child, now takes as granted 4 childs
         ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
         danger_fam = random.sample(ufid, danger_number)
@@ -118,7 +118,7 @@ class FamilyModel(Model):
 
 
 if __name__ == "__main__":
-    model = FamilyModel()
+    model = FamilyModel(r = 0.5)
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
     for i in range(400):
         model.step()
