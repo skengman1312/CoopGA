@@ -6,7 +6,7 @@ if __name__ == '__main__':
     params = {"N": 1000,#range(500, 1100, 100),
               "r": 0.5, #[i*0.1 for i in range(2, 7, 1)]
               "sr":  0.95,
-              "mr": 0.001
+              "mr": [0.001 * x for x in range(1,4)] #0.001
 
 
 
@@ -15,7 +15,7 @@ if __name__ == '__main__':
     results = batch_run(
         FamilyModel,
         parameters=params,
-        iterations=5,
+        iterations=10,
         max_steps=500,
         number_processes=None,
         data_collection_period=1,
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     )
     results_df = pd.DataFrame(results)
     print(results_df)
-    results_df.to_csv("result.csv")
+    results_df.to_csv("multi_result.csv")
 
 
 #prova

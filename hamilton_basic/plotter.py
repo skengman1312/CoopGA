@@ -5,10 +5,11 @@ from mpl_toolkits.mplot3d import *
 import numpy as np
 
 data = pd.read_csv("result.csv", index_col=0)
+multidata = pd.read_csv("multi_result.csv", index_col=0)
 print(data)
 
 
-def plot_prevalence(data):
+def plot_prevalence(data, title = ""):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
@@ -22,6 +23,7 @@ def plot_prevalence(data):
         drop=True) for m in range(len(msk))})
     # computing the mean
     lines['mean'] = lines.mean(axis=1)
+    print(lines)
     # print(lines)
     # plotting each run in thin black
     plt.plot(lines, color="black", lw=0.2)
@@ -39,10 +41,32 @@ def plot_prevalence(data):
         spine.set_visible(False)
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency")
-    plt.title(f"Kinship altruism\nN={data['N'][0]} r={data['r'][0]} dr={data['sr'][0]} mr={data['mr'][0]} ")
-    plt.savefig('results.png')
+    print(data)
+    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    plt.title(f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['sr'][0]} mr={data['mr'][0]} ")
+    filname = f"{title.replace(' ','')}_results.png" if title else "results.png"
+    plt.savefig(filname)
     plt.show()
     pass
+
+def multi_plot_preevalence(data):
+    """
+    function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
+    in multiple plots
+    """
+
+    #print([x // (data["iteration"].max() +1) for x in data["RunId"].unique()])
+    params = data[["N", "r", "sr", "mr"]].drop_duplicates()
+    #data["pID"] = data["RunId"] // (data["iteration"].max() +1)
+    #print(data["pID"])
+    msk = [data[["N", "r", "sr", "mr"]] == i for i in params]
+
+    print(msk)
+    for m in msk:
+        print(data[m]["iteration"].unique())
+        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max()+1}")
+    #print(data)
+    #msk = [data["iteration"] == i for i in data["iteration"].unique()]
 
 
 def f(x, y, n):
@@ -96,4 +120,5 @@ labels = ["population size",
           "initial freq altruism", "ending freq altruism"]
 #scatter3D(data, "N", "r", "altruistic fraction", labels)
 
-plot_prevalence(data)
+multi_plot_preevalence(multidata)
+#plot_prevalence(data)
