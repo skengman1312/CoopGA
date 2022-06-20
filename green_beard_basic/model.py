@@ -53,6 +53,9 @@ class BeardModel(Model):
         self.schedule = RandomActivation(self)
         self.N = N
         self.tot_N = N
+        self.running = True
+        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
+            [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
         self.mr = mr
         self.sr = sr
         # self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
@@ -70,7 +73,6 @@ class BeardModel(Model):
             self.schedule.add(agent)
 
         self.reproduce()
-        # TODO: reproduction method
 
     def reproduce(self, max_child=4):
         """
@@ -78,7 +80,6 @@ class BeardModel(Model):
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
         randomly from one of the 2 parents
         """
-        #print()
         agents = random.sample([agent for agent in self.schedule.agents], k= len(self.schedule.agents))
 
         for i in range(0, len(agents)-1, 2):
@@ -95,7 +96,8 @@ class BeardModel(Model):
                 child = BeardAgent(self.tot_N, self, child_genotype)
 
                 self.schedule.add(child)
-
+                #print("è natooo")
+            #print("hanno bombato")
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
 
@@ -105,7 +107,7 @@ class BeardModel(Model):
         # creating the "interaction rooms"
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
-        #print("N: ", num_agents)
+        # print("N: ", num_agents)
         danger_number = num_agents // 1.5  # we derived it from the wcs to have at least 500 individuals left,
         danger_dict = {}  # dictionary in which the key is the room number and the value is the list of individuals in that room
         for i in range(int(danger_number)):
@@ -142,14 +144,14 @@ class BeardModel(Model):
                     self.schedule.remove(agent1)
 
         self.reproduce()
-        # self.datacollector.collect(self)
+        self.datacollector.collect(self)
 
 
 if __name__ == "__main__":
     model = BeardModel()
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
     # initial frequency of green beard allele
-    for i in range(400):
+    for i in range(100):
         print("step: ", i)
         model.step()
     print("number of agents: ", model.schedule.get_agent_count())

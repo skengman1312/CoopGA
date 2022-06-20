@@ -54,7 +54,7 @@ def crossover(agent1, agent2):
     return [allele1, allele2]
 
 
-class BeardModel(Model):
+class BeardModelAdv(Model):
     """
     a model for simulation of the evolution of family related altruism
     """
@@ -121,7 +121,8 @@ class BeardModel(Model):
                 child = BeardAgent(self.tot_N, self, child_genotype)
 
                 self.schedule.add(child)
-
+            # print("è natooo")
+            # print("hanno bombato")
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
 
