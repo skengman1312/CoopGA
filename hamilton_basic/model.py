@@ -49,7 +49,7 @@ class FamilyAgent(Agent):
         Implementation of a generic altruistic action
         """
         if self.genotype:
-            if random.random() > self.model.sr:
+            if random.random() > self.model.dr:
                 return
             else:
                 self.model.schedule.remove(self)
@@ -63,17 +63,17 @@ class FamilyModel(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.5, sr=0.95, mr=0.001):
+    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
         N: total number of agents
         r: initial ratio of altruistic allele
-        sr: survival rate
+        dr: survival rate
         mr: mutation rate
         """
         self.schedule = SocialActivation(self)
         self.N = N
         self.mr = mr
-        self.sr = sr
+        self.dr = dr
         self.running = True
         self.datacollector = DataCollector(model_reporters={"altruistic fraction" : lambda x:  len([a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count() })
 

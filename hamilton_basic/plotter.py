@@ -43,14 +43,14 @@ def plot_prevalence(data, title=""):
     plt.ylabel("Allele frequency")
     print(data)
     maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
-    plt.title(f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['sr'][0]} mr={data['mr'][0]} ")
+    plt.title(f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['dr'][0]} mr={data['mr'][0]} ")
     filname = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filname)
     plt.show()
     pass
 
 
-def get_param_ID(data, params=["N", "r", "sr", "mr"]):
+def get_param_ID(data, params=["N", "r", "dr", "mr"]):
     """
 
     """
@@ -60,7 +60,7 @@ def get_param_ID(data, params=["N", "r", "sr", "mr"]):
     return data
 
 
-def multi_plot_prevalence(data, params=["N", "r", "sr", "mr"]):
+def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
@@ -76,7 +76,7 @@ def f(x, y, n):
     return np.full_like(np.zeros(100), 0.5, shape=n)
 
 
-def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "sr", "mr"]):
+def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "dr", "mr"]):
     data = get_param_ID(data, all_params)
 
     # we want to plot just the value of the parameters in the last step of each iteration
@@ -137,7 +137,7 @@ def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "sr", 
 
 labels = ["mutation rate",
           "death rate", "ending freq altruism"]
-#scatter3D(multidata, "mr", "sr", "altruistic fraction", labels)
+#scatter3D(multidata, "mr", "dr", "altruistic fraction", labels)
 
 multi_plot_prevalence(multidata)
 # plot_prevalence(data)
