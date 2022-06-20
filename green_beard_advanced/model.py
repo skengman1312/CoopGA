@@ -59,20 +59,29 @@ class BeardModelAdv(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.25, sr=0.95, mr=0.001):
+    def __init__(self, N=500, r=0.25, sr=0.95, mr=0.001, cr=0.02):
         """
         N: total number of agents
         r: initial ratio of each allele
         sr: survival rate
         mr: mutation rate
+        cr: crossover rate
         """
         self.schedule = RandomActivation(self)
         self.N = N
         self.tot_N = N
         self.mr = mr
         self.sr = sr
+        self.cr = cr
 
+        #TODO DATA COLLECTOR
+        # self.running = True
+        # self.datacollector = DataCollector(model_reporters={"Altruistic fraction": lambda x: len(
+        #  [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count()})
 
+        """
+        # initialization without linkage disequilibrium
+        
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
             self.schedule.add(agent)
@@ -88,11 +97,20 @@ class BeardModelAdv(Model):
         for i in range(3 * int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
             self.schedule.add(agent)
+        """
 
-        self.reproduce()
+        # initialization for linkage disequilibrium
+
+        for i in range(int(N * 2 * r)):
+            agent = BeardAgent(i, self, [1, 1])
+            self.schedule.add(agent)
+
+        for i in range(int(N * 2 * r), N):
+            agent = BeardAgent(i, self, [0, 0])
+            self.schedule.add(agent)
 
 
-    def reproduce(self, max_child=4, cross_prob=0.02):
+    def reproduce(self, max_child=4):
         """
         function to generate the new population from the parent individuals
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
@@ -108,7 +126,7 @@ class BeardModelAdv(Model):
 
             for j in range(n_child):
                 self.tot_N += 1
-                if random.random() < cross_prob:
+                if random.random() < self.cr:
                     child_genotype = crossover(agent1, agent2)
                 else:
                     child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
@@ -121,11 +139,9 @@ class BeardModelAdv(Model):
                 child = BeardAgent(self.tot_N, self, child_genotype)
 
                 self.schedule.add(child)
-            # print("è natooo")
-            # print("hanno bombato")
+
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
-
 
 
     def step(self) -> None:
@@ -167,7 +183,7 @@ class BeardModelAdv(Model):
                 gen2 = agent2.genotype
 
                 if gen1[0] and gen2[1]:  #agent1 is altruistic and gen2 has green beard
-                    if random.random() < 0.50:  # die with 0.50 probability
+                    if random.random() < self.sr:  # die with 0.50 probability
                         self.schedule.remove(agent1)
                 else:
                     self.schedule.remove(agent2)
@@ -177,7 +193,8 @@ class BeardModelAdv(Model):
 
 
 if __name__ == "__main__":
-    model = BeardModel()
+    model = BeardModelAdv()
+
     print(len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
     print(len([a for a in model.schedule.agent_buffer() if
