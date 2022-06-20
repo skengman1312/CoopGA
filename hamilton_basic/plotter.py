@@ -13,7 +13,6 @@ def plot_prevalence(data, title=""):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
-    # data = data.drop(columns=["N", "r", "RunId"])
     # masking the values of each iteration
     # creating a boolean mask for each iteration to be plotted
     msk = [data["iteration"] == i for i in data["iteration"].unique()]
@@ -51,6 +50,9 @@ def plot_prevalence(data, title=""):
 
 
 def get_param_ID(data, params=["N", "r", "sr", "mr"]):
+    """
+
+    """
     data["pID"] = data[params].astype(str).sum(axis=1)
     mapdict = {data["pID"].unique()[i]: i for i in range(len(data["pID"].unique()))}
     data["pID"] = data["pID"].apply(lambda x: mapdict[x])
@@ -63,16 +65,10 @@ def multi_plot_prevalence(data, params=["N", "r", "sr", "mr"]):
     in multiple plots
     """
     data = get_param_ID(data, params)
-    # print(mapdict)
-    print(data["pID"])
-    msk = [data[["N", "r", "sr", "mr"]] == i for i in params]
-
-    # print(msk)
+    msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
-        # print(data[m]["iteration"].unique())
         plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max() + 1}")
-    # print(data)
-    # msk = [data["iteration"] == i for i in data["iteration"].unique()]
+
 
 
 def f(x, y, n):
