@@ -5,14 +5,13 @@ import pandas as pd
 
 if __name__ == '__main__':
 
-    params = {"N": 50,
-              "r": 0.5
+    params = {"N": 500,
               }
     print("ciao")
     results = batch_run(
         model.BeardModel,
         parameters=params,
-        iterations=1,
+        iterations=20,
         max_steps=5,
         number_processes=None,
         data_collection_period=1,
