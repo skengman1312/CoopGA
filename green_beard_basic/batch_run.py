@@ -1,27 +1,25 @@
-from green_beard_basic import model
-#from model import BeardModel
+from model import BeardModel
 from mesa.batchrunner import batch_run
 import pandas as pd
 
 if __name__ == '__main__':
 
-    params = {"N": 500,
-              }
-    print("ciao")
+    params = {"N": 1000,
+              "r": [i*0.1 for i in range(2, 7, 1)], #0.5,
+              "dr": 0.95,
+              "mr": [0.001 * x for x in range(1,4)]} #0.001
+
     results = batch_run(
-        model.BeardModel,
+        BeardModel,
         parameters=params,
-        iterations=20,
-        max_steps=5,
+        iterations=10,
+        max_steps=1000,
         number_processes=None,
         data_collection_period=1,
         display_progress=True,
     )
 
-    print("ciao1")
     results_df = pd.DataFrame(results)
 
-    print(results_df)
-    results_df.to_csv("result.csv")
-
-# prova
+    #results_df.to_csv("result.csv")
+    results_df.to_csv("multi_result.csv")

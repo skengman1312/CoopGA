@@ -43,22 +43,24 @@ class BeardModel(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.5, sr=0.95, mr=0.001):
+    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
         N: total number of agents
         r: initial ratio of altruistic allele
-        sr: survival rate
+        dr: survival rate
         mr: mutation rate
         """
+
+        self.schedule = SocialActivation(self)
         self.n_steps = 0
-        self.schedule = RandomActivation(self)
         self.N = N
         self.tot_N = N
-        self.running = True
-        self.datacollector = DataCollector(model_reporters={"Altruistic fraction": lambda x: len(
-            [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count(), "n_agents": lambda x: x.schedule.get_agent_count()})
         self.mr = mr
-        self.sr = sr
+        self.dr = dr
+        self.running = True
+        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
+            [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count(), "n_agents": lambda x: x.schedule.get_agent_count()})
+
 
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, 1)
@@ -101,14 +103,14 @@ class BeardModel(Model):
     def step(self) -> None:
 
         print("Step Model")
+
         # creating the "interaction rooms"
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
         self.n_steps += 1
         print("step: ", self.n_steps)
         print(num_agents)
-        if self.n_steps == 400:
-            self.running = False
+
         # print("N: ", num_agents)
         danger_number = num_agents // 1.87  # we derived it from the wcs to have at least 500 individuals left,
         danger_dict = {}  # dictionary in which the key is the room number and the value is the list of individuals in that room
@@ -140,10 +142,14 @@ class BeardModel(Model):
                 gen1 = agent1.genotype
                 gen2 = agent2.genotype
                 if gen1 and gen2:  # both green beard
-                    if random.random() < self.sr: # die with 0.50 probability
+                    if random.random() < self.dr: # die with 0.50 probability
                         self.schedule.remove(agent1)
                 else:  # both cowardice or 1 cowardice and 1 altruistic, one of the 2 dies.
                     self.schedule.remove(agent1)
+
+        agents_id = [a.unique_id for a in self.schedule.agents]
+
+        self.schedule.step(agents_id)
 
         self.reproduce()
         self.datacollector.collect(self)
