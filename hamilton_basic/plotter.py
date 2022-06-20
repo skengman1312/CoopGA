@@ -49,21 +49,25 @@ def plot_prevalence(data, title = ""):
     plt.show()
     pass
 
-def multi_plot_preevalence(data):
+def multi_plot_preevalence(data, params = ["N", "r", "sr", "mr"] ) :
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
     """
 
     #print([x // (data["iteration"].max() +1) for x in data["RunId"].unique()])
-    params = data[["N", "r", "sr", "mr"]].drop_duplicates()
-    #data["pID"] = data["RunId"] // (data["iteration"].max() +1)
-    #print(data["pID"])
+    #params = data[["N", "r", "sr", "mr"]].drop_duplicates()
+    #print([data[p].astype(str) for p in params])
+    data["pID"] = data[params].astype(str).sum(axis=1)
+    mapdict = {data["pID"].unique()[i] : i for i in range(len(data["pID"].unique()))}
+    data["pID"] = data["pID"].apply(lambda x: mapdict[x])
+    #print(mapdict)
+    print(data["pID"])
     msk = [data[["N", "r", "sr", "mr"]] == i for i in params]
 
-    print(msk)
+    #print(msk)
     for m in msk:
-        print(data[m]["iteration"].unique())
+        #print(data[m]["iteration"].unique())
         plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max()+1}")
     #print(data)
     #msk = [data["iteration"] == i for i in data["iteration"].unique()]

@@ -121,6 +121,11 @@ class FamilyModel(Model):
 
         # mesa.time.RandomActivationByType
 
+class MultigeneFamilyAgent(FamilyAgent):
+
+    pass
+
+
 
 if __name__ == "__main__":
     model = FamilyModel()
