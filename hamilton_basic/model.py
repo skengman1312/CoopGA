@@ -40,7 +40,6 @@ class FamilyAgent(Agent):
         self.genotype = genotype
         self.family = family_id
 
-
     def step(self) -> None:
         self.altruistic_action()
 
@@ -54,7 +53,8 @@ class FamilyAgent(Agent):
             else:
                 self.model.schedule.remove(self)
         else:
-            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() if a.family == self.family and a.unique_id != self.unique_id]
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
+            ) if a.family == self.family and a.unique_id != self.unique_id]
         # return {"family": self.family,"action": bool(self.genotype), "survival": random.random() > 0.95 if self.genotype else True}
 
 
@@ -75,8 +75,8 @@ class FamilyModel(Model):
         self.mr = mr
         self.dr = dr
         self.running = True
-        self.datacollector = DataCollector(model_reporters={"altruistic fraction" : lambda x:  len([a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count() })
-
+        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x:  len(
+            [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
 
         for i in range(int(N * r)):
             agent = FamilyAgent(i, self, 1, i)
@@ -92,11 +92,14 @@ class FamilyModel(Model):
         """
         function to generate the new population from the parent individuals
         """
-        mating_ind = random.sample([agent for agent in self.schedule.agents], k=self.N)
-        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
+        mating_ind = random.sample(
+            [agent for agent in self.schedule.agents], k=self.N)
+        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
+                        for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
-        mutate = lambda x: x if random.random() > self.mr else 1 - x  # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+        # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+        def mutate(x): return x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
@@ -105,11 +108,13 @@ class FamilyModel(Model):
 
     def step(self) -> None:
         # creating the "interaction rooms"
-        danger_number = self.N // 4  # we derived it from the wcs to have at least 500 individuals left,
+        # we derived it from the wcs to have at least 500 individuals left,
+        danger_number = self.N // 4
         # it has to be generalized for n child, now takes as granted 4 childs
         ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
         danger_fam = random.sample(ufid, danger_number)
-        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f] for f in danger_fam]
+        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f]
+                 for f in danger_fam]
         active = [random.choice(r).unique_id for r in rooms]
 
         self.schedule.step(active)
@@ -121,16 +126,60 @@ class FamilyModel(Model):
 
         # mesa.time.RandomActivationByType
 
+
 class MultigeneFamilyAgent(FamilyAgent):
+    """
+    genotype: list of 2
+    allele1: binary, 1 codes for altruism 0 for cowardice
+    allele2: real number, from 0 (ugly) to 1 (beautiful)
+    """
+
+    def altruistic_action(self):
+        """
+        Implementation of a generic altruistic action
+        """
+        if self.genotype[0]:  # CHANGED HERE
+            if random.random() > self.model.dr:
+                return
+            else:
+                self.model.schedule.remove(self)
+        else:
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
+            ) if a.family == self.family and a.unique_id != self.unique_id]
 
     pass
 
 
+class MultigeneFamilyModel(Model):
+    """
+    """
+    # changed nothing below
+
+    def reproduce(self):
+        """
+        function to generate the new population from the parent individuals
+        """
+        mating_ind = random.sample(
+            [agent for agent in self.schedule.agents], k=self.N)
+        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
+                        for i in range(len(mating_ind) // 2)]
+        # print(len(set(mating_ind)))
+        # print(mating_pairs)
+        # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+        def mutate(x): return x if random.random() > self.mr else 1 - x
+        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
+                  mating_pairs for i in range(3)]
+        [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
+        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in
+         range(len(newgen))]
+
 
 if __name__ == "__main__":
     model = FamilyModel()
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
+    print(len([a for a in model.schedule.agent_buffer()
+          if a.genotype == 1]) / model.schedule.get_agent_count())
     for i in range(400):
         model.step()
-    print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1])/model.schedule.get_agent_count() )
+    print(len([a for a in model.schedule.agent_buffer()
+          if a.genotype == 1])/model.schedule.get_agent_count())
     print("yee")
