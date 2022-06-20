@@ -43,7 +43,8 @@ def plot_prevalence(data, title=""):
     plt.ylabel("Allele frequency")
     print(data)
     maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
-    plt.title(f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['dr'][0]} mr={data['mr'][0]} ")
+    plt.title(
+        f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['dr'][0]} mr={data['mr'][0]} ")
     filname = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filname)
     plt.show()
@@ -55,7 +56,8 @@ def get_param_ID(data, params=["N", "r", "dr", "mr"]):
 
     """
     data["pID"] = data[params].astype(str).sum(axis=1)
-    mapdict = {data["pID"].unique()[i]: i for i in range(len(data["pID"].unique()))}
+    mapdict = {data["pID"].unique()[i]: i for i in range(
+        len(data["pID"].unique()))}
     data["pID"] = data["pID"].apply(lambda x: mapdict[x])
     return data
 
@@ -68,8 +70,8 @@ def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
     data = get_param_ID(data, params)
     msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
-        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max() + 1}")
-
+        plot_prevalence(data[m].reset_index(drop=True),
+                        title=f"Run {data[m]['pID'].max() + 1}")
 
 
 def f(x, y, n):
@@ -119,14 +121,8 @@ def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "dr", 
     ax.set_ylim(p2_min, p2_max)
 
     # plot the surface
-    # m = results[param1].min()
-    # n = results[param2].min()
-    xx, yy = np.meshgrid(np.arange(p1_min, p1_max, 0.1),
-                         np.arange(p2_min, p2_max, 0.1))
-
-    print(xx)
-    print("\n")
-    print(yy)
+    xx, yy = np.meshgrid(np.arange(p1_min, p1_max, (p1_max-p1_min)/100),
+                         np.arange(p2_min, p2_max, (p2_max-p2_min)/100))
 
     z = f(xx, yy, xx.shape)
 
@@ -137,7 +133,7 @@ def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "dr", 
 
 labels = ["mutation rate",
           "death rate", "ending freq altruism"]
-#scatter3D(multidata, "mr", "dr", "altruistic fraction", labels)
+scatter3D(multidata, "mr", "dr", "altruistic fraction", labels)
 
-multi_plot_prevalence(multidata)
+# multi_plot_prevalence(multidata)
 # plot_prevalence(data)
