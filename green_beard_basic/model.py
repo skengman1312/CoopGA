@@ -54,15 +54,10 @@ class BeardModel(Model):
         self.N = N
         self.tot_N = N
         self.running = True
-        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
+        self.datacollector = DataCollector(model_reporters={"Altruistic fraction": lambda x: len(
             [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
         self.mr = mr
         self.sr = sr
-        # self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
-        #     [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
-
-
-        # TODO: add datacollector
 
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, 1)
@@ -104,6 +99,7 @@ class BeardModel(Model):
 
     def step(self) -> None:
 
+        print("Step Model")
         # creating the "interaction rooms"
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
@@ -138,7 +134,7 @@ class BeardModel(Model):
                 gen1 = agent1.genotype
                 gen2 = agent2.genotype
                 if gen1 and gen2:  # both green beard
-                    if random.random() < 0.50: # die with 0.50 probability
+                    if random.random() < self.sr: # die with 0.50 probability
                         self.schedule.remove(agent1)
                 else:  # both cowardice or 1 cowardice and 1 altruistic, one of the 2 dies.
                     self.schedule.remove(agent1)
