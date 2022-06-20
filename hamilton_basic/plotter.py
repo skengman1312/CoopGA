@@ -9,11 +9,11 @@ multidata = pd.read_csv("multi_result.csv", index_col=0)
 print(data)
 
 
-def plot_prevalence(data, title = ""):
+def plot_prevalence(data, title=""):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
-    #data = data.drop(columns=["N", "r", "RunId"])
+    # data = data.drop(columns=["N", "r", "RunId"])
     # masking the values of each iteration
     # creating a boolean mask for each iteration to be plotted
     msk = [data["iteration"] == i for i in data["iteration"].unique()]
@@ -44,33 +44,35 @@ def plot_prevalence(data, title = ""):
     print(data)
     maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
     plt.title(f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['sr'][0]} mr={data['mr'][0]} ")
-    filname = f"{title.replace(' ','')}_results.png" if title else "results.png"
+    filname = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filname)
     plt.show()
     pass
 
-def multi_plot_preevalence(data, params = ["N", "r", "sr", "mr"] ) :
+
+def get_param_ID(data, params=["N", "r", "sr", "mr"]):
+    data["pID"] = data[params].astype(str).sum(axis=1)
+    mapdict = {data["pID"].unique()[i]: i for i in range(len(data["pID"].unique()))}
+    data["pID"] = data["pID"].apply(lambda x: mapdict[x])
+    return data
+
+
+def multi_plot_prevalence(data, params=["N", "r", "sr", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
     """
-
-    #print([x // (data["iteration"].max() +1) for x in data["RunId"].unique()])
-    #params = data[["N", "r", "sr", "mr"]].drop_duplicates()
-    #print([data[p].astype(str) for p in params])
-    data["pID"] = data[params].astype(str).sum(axis=1)
-    mapdict = {data["pID"].unique()[i] : i for i in range(len(data["pID"].unique()))}
-    data["pID"] = data["pID"].apply(lambda x: mapdict[x])
-    #print(mapdict)
+    data = get_param_ID(data, params)
+    # print(mapdict)
     print(data["pID"])
     msk = [data[["N", "r", "sr", "mr"]] == i for i in params]
 
-    #print(msk)
+    # print(msk)
     for m in msk:
-        #print(data[m]["iteration"].unique())
-        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max()+1}")
-    #print(data)
-    #msk = [data["iteration"] == i for i in data["iteration"].unique()]
+        # print(data[m]["iteration"].unique())
+        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max() + 1}")
+    # print(data)
+    # msk = [data["iteration"] == i for i in data["iteration"].unique()]
 
 
 def f(x, y, n):
@@ -78,7 +80,6 @@ def f(x, y, n):
 
 
 def scatter3D(data, param1, param2, result, labels):
-
     # we want to plot just the value of the parameters in the last step of each iteration
     max_step = data["Step"].max()
     # results stores now just the lines of the df where we had the last step of each iteration
@@ -110,8 +111,8 @@ def scatter3D(data, param1, param2, result, labels):
     # plot the surface
     m = results[param1].min()
     n = results[param2].min()
-    xx, yy = np.meshgrid(np.arange((m-0.5), (m+0.5), 0.1),
-                         np.arange((n-0.5), (n+0.5), 0.1))
+    xx, yy = np.meshgrid(np.arange((m - 0.5), (m + 0.5), 0.1),
+                         np.arange((n - 0.5), (n + 0.5), 0.1))
 
     z = f(xx, yy, xx.shape)
 
@@ -122,7 +123,7 @@ def scatter3D(data, param1, param2, result, labels):
 
 labels = ["population size",
           "initial freq altruism", "ending freq altruism"]
-#scatter3D(data, "N", "r", "altruistic fraction", labels)
+# scatter3D(data, "N", "r", "altruistic fraction", labels)
 
-multi_plot_preevalence(multidata)
-#plot_prevalence(data)
+multi_plot_prevalence(multidata)
+# plot_prevalence(data)
