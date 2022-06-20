@@ -9,7 +9,7 @@ multidata = pd.read_csv("multi_result.csv", index_col=0)
 print(multidata)
 
 
-def plot_prevalence(data, title=""):
+def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"] ):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
@@ -43,9 +43,11 @@ def plot_prevalence(data, title=""):
     plt.ylabel("Allele frequency")
     print(data)
     maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
-    plt.title(f"{maintitle}\nN={data['N'][0]} r={data['r'][0]} dr={data['dr'][0]} mr={data['mr'][0]} ")
-    filname = f"{title.replace(' ', '')}_results.png" if title else "results.png"
-    plt.savefig(filname)
+    subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
+    print(subtitle)
+    plt.title(f"{maintitle}\n{subtitle}")
+    filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
+    plt.savefig(filename)
     plt.show()
     pass
 
@@ -68,7 +70,7 @@ def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
     data = get_param_ID(data, params)
     msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
-        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max() + 1}")
+        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max() + 1}", params= params)
 
 
 
@@ -140,4 +142,4 @@ labels = ["mutation rate",
 #scatter3D(multidata, "mr", "dr", "altruistic fraction", labels)
 
 multi_plot_prevalence(multidata)
-# plot_prevalence(data)
+#plot_prevalence(data)

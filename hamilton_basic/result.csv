@@ -1,4 +1,4 @@
-,RunId,iteration,Step,N,r,sr,mr,altruistic fraction
+,RunId,iteration,Step,N,r,dr,mr,altruistic fraction
 0,0,0,0,1000,0.5,0.95,0.001,0.5073333333333333
 1,0,0,1,1000,0.5,0.95,0.001,0.53
 2,0,0,2,1000,0.5,0.95,0.001,0.5366666666666666
