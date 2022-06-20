@@ -23,7 +23,6 @@ def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"] ):
         drop=True) for m in range(len(msk))})
     # computing the mean
     lines['mean'] = lines.mean(axis=1)
-    print(lines)
     # print(lines)
     # plotting each run in thin black
     plt.plot(lines, color="black", lw=0.2)
@@ -41,10 +40,8 @@ def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"] ):
         spine.set_visible(False)
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency")
-    print(data)
     maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
-    print(subtitle)
     plt.title(f"{maintitle}\n{subtitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filename)
