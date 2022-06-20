@@ -9,7 +9,7 @@ multidata = pd.read_csv("multi_result.csv", index_col=0)
 print(multidata)
 
 
-def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"] ):
+def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
@@ -54,7 +54,8 @@ def get_param_ID(data, params=["N", "r", "dr", "mr"]):
 
     """
     data["pID"] = data[params].astype(str).sum(axis=1)
-    mapdict = {data["pID"].unique()[i]: i for i in range(len(data["pID"].unique()))}
+    mapdict = {data["pID"].unique()[i]: i for i in range(
+        len(data["pID"].unique()))}
     data["pID"] = data["pID"].apply(lambda x: mapdict[x])
     return data
 
@@ -67,15 +68,16 @@ def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
     data = get_param_ID(data, params)
     msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
-        plot_prevalence(data[m].reset_index(drop=True), title=f"Run {data[m]['pID'].max() + 1}", params= params)
+        plot_prevalence(data[m].reset_index(
+            drop=True), title=f"Run {data[m]['pID'].max() + 1}", params=params)
 
 
+def scatter3D(data, param1, param2, result, labels, all_params, title=""):
+    """
+    Function used to plot altruistic allele frequency (result) against two other parameters of user's choice.
+    In the output each color will represent a different combination of parameters' values
+    """
 
-def f(x, y, n):
-    return np.full_like(np.zeros(100), 0.5, shape=n)
-
-
-def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "dr", "mr"]):
     data = get_param_ID(data, all_params)
 
     # we want to plot just the value of the parameters in the last step of each iteration
@@ -92,51 +94,51 @@ def scatter3D(data, param1, param2, result, labels, all_params=["N", "r", "dr", 
     ax.set_ylabel(labels[1])
     ax.set_zlabel(labels[2])
 
-    # we obtain the unique labels of the RunId
-    # In this case I'm considering each label of RunId correspond to a specific
-    # combination of value for the two paramters
-    # N.B. adesso RunId value non corrisponde a una combinazione di parametri
+    # we obtain the unique labels of the pID
+    # Each label of RunId correspond to a specific combination of values for the paramters
     runs = results["pID"].unique()
+
+    handles = []
 
     for run in runs:
         # for each combination of parameters we will have a different color
         run_data = results[results["pID"] == run]
-        ax.scatter(run_data[param1], run_data[param2], run_data[result])
+        prova = ax.scatter(
+            run_data[param1], run_data[param2], run_data[result])
+        handles.append(prova)
 
     if results[result].min() > 0.5:
         ax.set_zlim(0.3, 1)
 
-    # print(results[param1].min()-results[param1].min() *
-    #       20/100, results[param1].max()+results[param1].min()*20/100)
-
+    # adjusting the axes limits
     p1_min = results[param1].min()-results[param1].min() * 20/100
-    p1_max = results[param1].max()+results[param1].min()*20/100
+    p1_max = results[param1].max()+results[param1].min() * 20/100
     p2_min = results[param2].min()-results[param2].min() * 20/100
-    p2_max = results[param2].max()+results[param2].min()*20/100
+    p2_max = results[param2].max()+results[param2].min() * 20/100
 
     ax.set_xlim(p1_min, p1_max)
     ax.set_ylim(p2_min, p2_max)
 
     # plot the surface
-    # m = results[param1].min()
-    # n = results[param2].min()
-    xx, yy = np.meshgrid(np.arange(p1_min, p1_max, 0.1),
-                         np.arange(p2_min, p2_max, 0.1))
-
-    print(xx)
-    print("\n")
-    print(yy)
-
-    z = f(xx, yy, xx.shape)
+    xx, yy = np.meshgrid(np.arange(p1_min, p1_max, (p1_max-p1_min)/100),
+                         np.arange(p2_min, p2_max, (p1_max-p1_min)/100))
+    z = np.full_like(np.zeros(100), 0.5, shape=xx.shape)
 
     ax.plot_surface(xx, yy, z, alpha=0.2)
+
+    ax.legend(handles, runs.data)
+
+    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    plt.title(f"{maintitle}")
+    filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
+    plt.savefig(filename)
 
     plt.show()
 
 
-labels = ["mutation rate",
-          "death rate", "ending freq altruism"]
-#scatter3D(multidata, "mr", "dr", "altruistic fraction", labels)
+labels = ["mutation rate", "death rate", "ending freq altruism"]
+scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+          all_params=["N", "r", "dr", "mr"], title="scatter")
 
-multi_plot_prevalence(multidata)
-#plot_prevalence(data)
+# multi_plot_prevalence(multidata)
+# plot_prevalence(data)
