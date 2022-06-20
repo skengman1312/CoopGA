@@ -59,7 +59,8 @@ class BeardModel(Model):
         self.dr = dr
         self.running = True
         self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
-            [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count(), "n_agents": lambda x: x.schedule.get_agent_count()})
+            [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count(),
+                "n_agents": lambda x: x.schedule.get_agent_count()})
 
 
         for i in range(int(N * r)):
@@ -94,8 +95,7 @@ class BeardModel(Model):
                 child = BeardAgent(self.tot_N, self, child_genotype)
 
                 self.schedule.add(child)
-                #print("è natooo")
-            #print("hanno bombato")
+
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
 
@@ -113,11 +113,10 @@ class BeardModel(Model):
 
         # print("N: ", num_agents)
         danger_number = num_agents // 1.87  # we derived it from the wcs to have at least 500 individuals left,
-        danger_dict = {}  # dictionary in which the key is the room number and the value is the list of individuals in that room
-        for i in range(int(danger_number)):
-            danger_dict[i] = []
+        danger_dict: dict = {i: [] for i in range(int(danger_number))}
+        # dictionary in which the key is the room number and the value is the list of individuals in that room
 
-        # assign each agent to a tree
+        # assign each agent to a tree/room
         for agent in self.schedule.agent_buffer():
             rand = random.randint(1, rooms_number)
             if rand < danger_number:  # pred
@@ -131,6 +130,7 @@ class BeardModel(Model):
             else:  # goes to no pred room
                 continue
 
+        #action of the agent
         for key, value in danger_dict.items():
             if len(value) == 0:
                 continue
