@@ -43,16 +43,21 @@ class BeardModel(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.5):
+    def __init__(self, N=500, r=0.5, sr=0.95, mr=0.001):
         """
         N: total number of agents
         r: initial ratio of altruistic allele
+        sr: survival rate
+        mr: mutation rate
         """
         self.schedule = RandomActivation(self)
         self.N = N
         self.tot_N = N
+        self.mr = mr
+        self.sr = sr
         # self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
         #     [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
+
 
         # TODO: add datacollector
 
@@ -84,13 +89,16 @@ class BeardModel(Model):
             for j in range(n_child):
                 self.tot_N += 1
                 child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
+                mutate = lambda x: x if random.random() > self.mr else 1 - x
+                # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+                child_genotype = mutate(child_genotype)
                 child = BeardAgent(self.tot_N, self, child_genotype)
+
                 self.schedule.add(child)
-                #print("è natooo")
-            #print("hanno bombato")
+
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
-        # TODO add mutation
+
 
     def step(self) -> None:
 

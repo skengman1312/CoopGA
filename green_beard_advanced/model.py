@@ -59,18 +59,19 @@ class BeardModel(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.25):
+    def __init__(self, N=500, r=0.25, sr=0.95, mr=0.001):
         """
         N: total number of agents
         r: initial ratio of each allele
+        sr: survival rate
+        mr: mutation rate
         """
         self.schedule = RandomActivation(self)
         self.N = N
         self.tot_N = N
-        # self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
-        #     [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
+        self.mr = mr
+        self.sr = sr
 
-        # TODO: add datacollector
 
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
@@ -89,7 +90,7 @@ class BeardModel(Model):
             self.schedule.add(agent)
 
         self.reproduce()
-        # TODO: reproduction method
+
 
     def reproduce(self, max_child=4, cross_prob=0.02):
         """
@@ -112,12 +113,19 @@ class BeardModel(Model):
                 else:
                     child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
 
+                mutate = lambda x: x if random.random() > self.mr else 1 - x
+                # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+                child_genotype[0] = mutate(child_genotype[0])
+                child_genotype[1] = mutate(child_genotype[1])
+
                 child = BeardAgent(self.tot_N, self, child_genotype)
+
                 self.schedule.add(child)
-            # print("è natooo")
-            # print("hanno bombato")
+
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
+
+
 
     def step(self) -> None:
 
@@ -179,7 +187,7 @@ if __name__ == "__main__":
                a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
     # initial frequency of green beard allele
-    for i in range(400):
+    for i in range(200):
         #print("step: ", i)
         model.step()
     print("number of agents: ", model.schedule.get_agent_count())
