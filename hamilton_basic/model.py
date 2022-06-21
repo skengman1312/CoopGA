@@ -99,7 +99,7 @@ class FamilyModel(Model):
         # print(len(set(mating_ind)))
         # print(mating_pairs)
         # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
-        def mutate(x): return x if random.random() > self.mr else 1 - x
+        mutate = lambda x:  x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
@@ -144,8 +144,7 @@ class MultigeneFamilyAgent(FamilyAgent):
             else:
                 self.model.schedule.remove(self)
         else:
-            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
-            ) if a.family == self.family and a.unique_id != self.unique_id]
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() if a.family == self.family and a.unique_id != self.unique_id]
 
     pass
 
@@ -159,19 +158,15 @@ class MultigeneFamilyModel(Model):
         """
         function to generate the new population from the parent individuals
         """
-        mating_ind = random.sample(
-            [agent for agent in self.schedule.agents], k=self.N)
-        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
-                        for i in range(len(mating_ind) // 2)]
+        mating_ind = random.sample([agent for agent in self.schedule.agents], k=self.N)
+        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
         # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
-        def mutate(x): return x if random.random() > self.mr else 1 - x
-        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
-                  mating_pairs for i in range(3)]
+        mutate = lambda x:  x if random.random() > self.mr else 1 - x
+        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
-        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in
-         range(len(newgen))]
+        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
 
 if __name__ == "__main__":
