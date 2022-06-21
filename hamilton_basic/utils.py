@@ -9,7 +9,7 @@ class FloatBinHandler:
         """
         self.precision = precision
         # conversion constant needed to transform floeat into int
-        self.const = int("1" + "0" * precision)
+        self.const = 10**precision
         # length of the padded bin string
         self.length = len(bin(int(max_value * self.const))) - 2
 
