@@ -64,7 +64,7 @@ class BeardModelAdv(Model):
         """
         self.schedule = SocialActivation(self)
         self.n_steps = 0
-        self.N = N
+        self.N = 0 # N
         self.tot_N = N
         self.mr = mr
         self.dr = dr
@@ -114,10 +114,14 @@ class BeardModelAdv(Model):
 
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
+            self.tot_N += 1
+            print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
 
         for i in range(int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
+            self.tot_N += 1
+            print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
         """
 
