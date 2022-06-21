@@ -12,6 +12,8 @@ print(multidata)
 def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation
+    :param title: title of the plot
+    :param params: parameters to be included in the subtitle
     """
     # data = data.drop(columns=["N", "r", "RunId"])
     # masking the values of each iteration
@@ -51,7 +53,9 @@ def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
 
 def get_param_ID(data, params=["N", "r", "dr", "mr"]):
     """
-
+    function used to plot the mean of the allele prevalence across several simulation
+    :param data: data to compute the paramID on
+    :param params: parameters to nìbe used for the segmentation
     """
     data["pID"] = data[params].astype(str).sum(axis=1)
     mapdict = {data["pID"].unique()[i]: i for i in range(
@@ -64,6 +68,8 @@ def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
+    :param title: title of the plot
+    :param params: parameters to be included in the subtitle
     """
     data = get_param_ID(data, params)
     msk = [data["pID"] == i for i in data["pID"].unique()]

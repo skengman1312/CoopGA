@@ -34,7 +34,7 @@ class FamilyAgent(Agent):
 
     def __init__(self, unique_id, model, genotype, family_id: int):
         """
-        genotype: 1 codes for altruism 0 for cowardice
+        :param genotype: 1 codes for altruism 0 for cowardice
         """
         super().__init__(unique_id, model)
         self.genotype = genotype
@@ -65,10 +65,10 @@ class FamilyModel(Model):
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
-        N: total number of agents
-        r: initial ratio of altruistic allele
-        dr: survival rate
-        mr: mutation rate
+        :param N: total number of agents
+        :param r: initial ratio of altruistic allele
+        :param dr: survival rate
+        :param mr: mutation rate
         """
         self.schedule = SocialActivation(self)
         self.N = N
@@ -129,9 +129,9 @@ class FamilyModel(Model):
 
 class MultigeneFamilyAgent(FamilyAgent):
     """
-    genotype: list of 2
-    allele1: binary, 1 codes for altruism 0 for cowardice
-    allele2: real number, from 0 (ugly) to 1 (beautiful)
+    :param genotype: list of [traint1, trait2]
+    trait1: binary gene, allele 1 codes for altruism allele 0 for cowardice
+    trait2: real number coded as bin, from 0 (ugly) to 1 (beautiful)
     """
 
     def altruistic_action(self):
@@ -153,6 +153,7 @@ class MultigeneFamilyModel(Model):
     """
     """
     # changed nothing below
+
 
     def reproduce(self):
         """
