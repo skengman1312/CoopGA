@@ -78,7 +78,7 @@ class FamilyModel(Model):
         self.mr = mr
         self.dr = dr
         self.running = True
-        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x:  len(
+        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
             [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
 
         self.add_agents(N, r)
@@ -94,7 +94,6 @@ class FamilyModel(Model):
             agent = FamilyAgent(i, self, 0, i)
             self.schedule.add(agent)
 
-
     def reproduce(self):
         """
         function to generate the new population from the parent individuals
@@ -106,7 +105,8 @@ class FamilyModel(Model):
         # print(len(set(mating_ind)))
         # print(mating_pairs)
         # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
-        mutate = lambda x:  x if random.random() > self.mr else 1 - x
+
+        mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
                   mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
@@ -151,7 +151,8 @@ class MultigeneFamilyAgent(FamilyAgent):
             else:
                 self.model.schedule.remove(self)
         else:
-            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() if a.family == self.family and a.unique_id != self.unique_id]
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
+            ) if a.family == self.family and a.unique_id != self.unique_id]
 
     pass
 
@@ -159,11 +160,10 @@ class MultigeneFamilyAgent(FamilyAgent):
 class MultigeneFamilyModel(FamilyModel):
     """
     """
-    # changed nothing below
-    def __init__(self,N=500, r=0.5, dr=0.95, mr=0.001):
+
+    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         self.handler = FloatBinHandler(3, 1)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
-
 
     def add_agents(self, N, r):
         for i in range(int(N * r)):
@@ -176,31 +176,52 @@ class MultigeneFamilyModel(FamilyModel):
             agent = FamilyAgent(i, self, [0, trait2], i)
             self.schedule.add(agent)
 
-    def reprductive_fitness(self, agent):
+    def reproductive_fitness(self, agent):
         phenotype = self.handler.bin2float(agent.genotype[1])
         mean, sd = 0.6, 0.1
-        return (np.pi*sd) * np.exp(-0.5*((phenotype-mean)/sd)**2)
+        return (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)
+
+    def allele2_computation(self, parent1, parent2):
+       # crossover
+        gene_offspring = ''
+        for p1, p2 in zip(parent1.genotype[1], parent2.genotype[1]):
+            gene_offspring += random.choice((p1, p2))
+
+        # mutation
+        mutate = lambda x: x if random.random() > self.mr else str(1 - int(x))
+        gene_offspring_mutated = ''
+        for g in gene_offspring:
+            gene_offspring_mutated += mutate(g)
+
+        return gene_offspring_mutated
 
     def reproduce(self):
         """
         function to generate the new population from the parent individuals
         """
-        total_rep_fitness = [self.reprductive_fitness(a) for a in self.schedule.agents]
-        mating_ind =  np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
-        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
+        total_rep_fitness = np.array([self.reproductive_fitness(
+            a) for a in self.schedule.agents])
+        total_rep_fitness /= total_rep_fitness.sum()
+        mating_ind = np.random.choice(
+            self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
+        mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
+                        for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
         # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
-        mutate = lambda x:  x if random.random() > self.mr else 1 - x
-        sex_rep = lambda x : x
-        newgen = [{"genotype": [mutate(random.choice([a.genotype for a in p]))], "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
+
+        mutate = lambda x: x if random.random() > self.mr else 1 - x
+        newgen = [{"genotype": [mutate(random.choice([a.genotype[0] for a in p])),
+                                self.allele2_computation(p[0], p[1])],
+                   "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
+
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
-        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
+        [self.schedule.add(FamilyAgent(
+            i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
 
 if __name__ == "__main__":
     model = MultigeneFamilyModel()
-
 
     # model = FamilyModel()
     # print(len([a for a in model.schedule.agent_buffer()
