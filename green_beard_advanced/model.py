@@ -64,7 +64,7 @@ class BeardModelAdv(Model):
         """
         self.schedule = SocialActivation(self)
         self.n_steps = 0
-        self.N = 0 # N
+        self.N = 0  # N
         self.tot_N = N
         self.mr = mr
         self.dr = dr
@@ -83,47 +83,54 @@ class BeardModelAdv(Model):
           [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0]) / x.schedule.get_agent_count(),
                 "n_agents": lambda x: x.schedule.get_agent_count()})
 
-
+        """
         # initialization without linkage disequilibrium
-
-        #i = 0
 
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
+            self.tot_N += 1
+            #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
-            #i +=1
-        #print(i)
+
         for i in range(int(N * r), 2 * int(N * r)):
             agent = BeardAgent(i, self, [1, 0])
+            self.tot_N += 1
+            #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
-            #i +=1
-        #print(i)
+
         for i in range(2 * int(N * r), 3 * int(N * r)):
             agent = BeardAgent(i, self, [0, 1])
+            self.tot_N += 1
+            #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
-            #i +=1
-        #print(i)
+
         for i in range(3 * int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
+            self.tot_N += 1
+            #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
-            #i +=1
-        #print(i)
+
         """
 
         # initialization for linkage disequilibrium
 
+        tot = 0
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
             self.tot_N += 1
-            print("tot_n: ", self.tot_N)
+            #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
+            #tot +=1
+        #print(tot)
 
         for i in range(int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
             self.tot_N += 1
-            print("tot_n: ", self.tot_N)
+            #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
-        """
+            #tot += 1
+        #print(tot)
+        #"""
 
     def reproduce(self, max_child=4):
         """
@@ -173,9 +180,10 @@ class BeardModelAdv(Model):
         #print("num agents", num_agents)
         # print("N: ", num_agents)
 
-        danger_number = num_agents // 1.893  # we derived it from the wcs to have at least 500 individuals left,
+        danger_number = num_agents // 1.9  # we derived it from the wcs to have at least 500 individuals left,
         # 1.893 without linkage disequilibrium
         # 1.9 for linkage disequilibrium
+
         danger_dict: dict = {i: [] for i in range(int(danger_number))}
         # dictionary in which the key is the room number and the value is the list of individuals in that room
 
