@@ -68,7 +68,7 @@ def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
-    :param title: title of the plot
+    :param data: data for the plot
     :param params: parameters to be included in the subtitle
     """
     data = get_param_ID(data, params)
