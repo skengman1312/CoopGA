@@ -109,7 +109,7 @@ class BeardModel(Model):
         rooms_number = num_agents  # tot number of rooms
         self.n_steps += 1
         print("step: ", self.n_steps)
-        print(num_agents)
+        print("num agent: ", num_agents)
 
         # print("N: ", num_agents)
         danger_number = num_agents // 1.87  # we derived it from the wcs to have at least 500 individuals left,
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
     # initial frequency of green beard allele
     for i in range(100):
-        print("step: ", i)
+        print("step main: ", i)
         model.step()
     print("number of agents: ", model.schedule.get_agent_count())
     print(len([a for a in model.schedule.agent_buffer() if a.genotype == 1])/model.schedule.get_agent_count() )

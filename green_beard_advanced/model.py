@@ -54,7 +54,7 @@ class BeardModelAdv(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=500, r=0.25, dr=0.95, mr=0.001, cr=0.02):
+    def __init__(self, N=1000, r=0.25, dr=0.95, mr=0.001, cr=0.02):
         """
         N: total number of agents
         r: initial ratio of each allele
@@ -64,7 +64,7 @@ class BeardModelAdv(Model):
         """
         self.schedule = SocialActivation(self)
         self.n_steps = 0
-        self.N = N
+        self.N = 0 # N
         self.tot_N = N
         self.mr = mr
         self.dr = dr
@@ -80,39 +80,50 @@ class BeardModelAdv(Model):
                 "impostors fraction": lambda x: len(
           [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 1]) / x.schedule.get_agent_count(),
                 "cowards fraction": lambda x: len(
-          [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 1]) / x.schedule.get_agent_count(),
+          [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0]) / x.schedule.get_agent_count(),
                 "n_agents": lambda x: x.schedule.get_agent_count()})
 
-        """
+
         # initialization without linkage disequilibrium
-        
+
+        #i = 0
+
         for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
             self.schedule.add(agent)
-
+            #i +=1
+        #print(i)
         for i in range(int(N * r), 2 * int(N * r)):
             agent = BeardAgent(i, self, [1, 0])
             self.schedule.add(agent)
-
+            #i +=1
+        #print(i)
         for i in range(2 * int(N * r), 3 * int(N * r)):
             agent = BeardAgent(i, self, [0, 1])
             self.schedule.add(agent)
-
+            #i +=1
+        #print(i)
         for i in range(3 * int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
             self.schedule.add(agent)
+            #i +=1
+        #print(i)
         """
 
         # initialization for linkage disequilibrium
 
-        for i in range(int(N * 2 * r)):
+        for i in range(int(N * r)):
             agent = BeardAgent(i, self, [1, 1])
+            self.tot_N += 1
+            print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
 
-        for i in range(int(N * 2 * r), N):
+        for i in range(int(N * r), N):
             agent = BeardAgent(i, self, [0, 0])
+            self.tot_N += 1
+            print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
-
+        """
 
     def reproduce(self, max_child=4):
         """
@@ -158,11 +169,13 @@ class BeardModelAdv(Model):
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
         self.n_steps += 1
-        print("step: ", self.n_steps)
-        print(num_agents)
+        #print("step: ", self.n_steps)
+        #print("num agents", num_agents)
         # print("N: ", num_agents)
 
-        danger_number = num_agents // 1.9  # we derived it from the wcs to have at least 500 individuals left,
+        danger_number = num_agents // 1.893  # we derived it from the wcs to have at least 500 individuals left,
+        # 1.893 without linkage disequilibrium
+        # 1.9 for linkage disequilibrium
         danger_dict: dict = {i: [] for i in range(int(danger_number))}
         # dictionary in which the key is the room number and the value is the list of individuals in that room
 
@@ -219,8 +232,8 @@ if __name__ == "__main__":
                a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
     # initial frequency of green beard allele
-    for i in range(200):
-        #print("step: ", i)
+    for i in range(1000):
+        print("step: ", i)
         model.step()
     print("number of agents: ", model.schedule.get_agent_count())
 

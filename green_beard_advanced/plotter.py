@@ -5,7 +5,8 @@ from mpl_toolkits.mplot3d import *
 import numpy as np
 
 data = pd.read_csv("result.csv", index_col=0)
-multidata = pd.read_csv("multi_result.csv", index_col=0)
+data1 = pd.read_csv("result_nolinkage.csv", index_col=0)
+#multidata = pd.read_csv("multi_result.csv", index_col=0)
 #print(multidata)
 
 
@@ -135,13 +136,115 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
     plt.show()
 
+def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
+    """
+    function used to plot the mean of the allele prevalence across several simulation
+    """
+    # data = data.drop(columns=["N", "r", "RunId"])
+    # masking the values of each iteration
+    # creating a boolean mask for each iteration to be plotted
+    print(data["r"])
+    msk = [data["iteration"] == i for i in data["iteration"].unique()]
+    #print(msk)
+    ms = data["Step"].max()  # max step  printa step r
+    #print(ms)
+    # grouping all the lines in a single df without other data
+    lines = pd.DataFrame(data={m: data[msk[m]]["altruistic fraction"].reset_index(
+        drop=True) for m in range(len(msk))})
+
+    lines_true = pd.DataFrame(data={m: data[msk[m]]["true beards fraction"].reset_index(
+        drop=True) for m in range(len(msk))})
+    lines_suckers = pd.DataFrame(data={m: data[msk[m]]["suckers fraction"].reset_index(
+        drop=True) for m in range(len(msk))})
+    lines_impostors = pd.DataFrame(data={m: data[msk[m]]["impostors fraction"].reset_index(
+        drop=True) for m in range(len(msk))})
+    lines_cowards = pd.DataFrame(data={m: data[msk[m]]["cowards fraction"].reset_index(
+        drop=True) for m in range(len(msk))})
+
+
+    # computing the mean
+    lines['mean'] = lines.mean(axis=1)
+    lines_true['mean'] = lines_true.mean(axis=1)
+    lines_suckers['mean'] = lines_suckers.mean(axis=1)
+    lines_impostors['mean'] = lines_impostors.mean(axis=1)
+    lines_cowards['mean'] = lines_cowards.mean(axis=1)
+
+    # plotting each run in thin black
+    #plt.plot(lines, color="black", lw=0.2)
+    # plotting mean in red
+    #plt.plot(lines["mean"], color="red", lw=0.5, label="mean")
+    # setting plot limits
+    plt.axis((0, ms, 0, 1))
+    # filling the background wrt mean line
+    plt.legend(loc='best', framealpha=0.2)
+    #"""
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=0,
+                     y2=lines_impostors["mean"],
+                     color="#120A8F",
+                     alpha=0.9)
+
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_impostors["mean"],
+                     y2=lines_true["mean"]+lines_impostors["mean"],
+                     color="#FFA500", alpha=0.9)
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_true["mean"] + lines_impostors["mean"],
+                     y2= lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"],
+                     color="#7FFFD4",
+                     alpha=0.9)
+
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"],
+                     y2=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"]+lines_suckers["mean"],
+                     color="#75663F",
+                     alpha=0.9)
+    """
+
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=0,
+                     y2=lines_impostors["mean"],
+                     color="#120A8F",
+                     alpha=0.9)
+
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_impostors["mean"],
+                     y2=lines_true["mean"] ,
+                     color="#FFA500", alpha=0.9)
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_true["mean"],
+                     y2=lines_cowards["mean"],
+                     color="#7FFFD4",
+                     alpha=0.9)
+
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_cowards["mean"],
+                     y2= lines_suckers["mean"],
+                     color="#75663F",
+                     alpha=0.9)
+    """
+    for spine in plt.gca().spines.values():
+        spine.set_visible(False)
+    plt.xlabel("Steps")
+    plt.ylabel("Allele frequency")
+    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
+
+    plt.title(f"{maintitle}\n{subtitle}")
+    filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
+    plt.savefig(filename)
+    plt.show()
+    pass
 
 labels = ["mutation rate", "death rate", "ending freq altruism"]
-scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
-          all_params=["N", "r", "dr", "mr"], title="scatter")
+#scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+          #all_params=["N", "r", "dr", "mr"], title="scatter")
 
 #scatter3D(data, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
           #all_params=["N", "r", "dr", "mr"], title="scatter")
 
 #multi_plot_prevalence(multidata)
-plot_prevalence(data)
+#plot_prevalence(data)
+
+plot_all_prevalence(data)
+plot_all_prevalence(data1)
