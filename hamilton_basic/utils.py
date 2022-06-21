@@ -8,7 +8,9 @@ class FloatBinHandler:
         :param max_value: maximum value of the float numbers to be converted, needed for padding
         """
         self.precision = precision
+        # conversion constant needed to transform floeat into int
         self.const = int("1" + "0" * precision)
+        # length of the padded bin string
         self.length = len(bin(int(max_value * self.const))) - 2
 
     def float2bin(self, f: float):
@@ -18,7 +20,6 @@ class FloatBinHandler:
         :return: binary sting with buffer
         """
         b = bin(int(f * self.const))
-
         pb = "0b" + b[2:].zfill(self.length)
         return pb
 
