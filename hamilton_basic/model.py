@@ -3,6 +3,9 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.time import BaseScheduler
 from mesa.datacollection import DataCollector
+import numpy as np
+from utils import FloatBinHandler
+
 fam_id = -1
 
 
@@ -78,6 +81,11 @@ class FamilyModel(Model):
         self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x:  len(
             [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count()})
 
+        self.add_agents(N, r)
+
+        self.reproduce()
+
+    def add_agents(self, N, r):
         for i in range(int(N * r)):
             agent = FamilyAgent(i, self, 1, i)
             self.schedule.add(agent)
@@ -86,7 +94,6 @@ class FamilyModel(Model):
             agent = FamilyAgent(i, self, 0, i)
             self.schedule.add(agent)
 
-        self.reproduce()
 
     def reproduce(self):
         """
@@ -149,33 +156,57 @@ class MultigeneFamilyAgent(FamilyAgent):
     pass
 
 
-class MultigeneFamilyModel(Model):
+class MultigeneFamilyModel(FamilyModel):
     """
     """
     # changed nothing below
+    def __init__(self,N=500, r=0.5, dr=0.95, mr=0.001):
+        self.handler = FloatBinHandler(3, 1)
+        super().__init__(N=N, r=r, dr=dr, mr=mr)
 
+
+    def add_agents(self, N, r):
+        for i in range(int(N * r)):
+            trait2 = self.handler.float2bin(random.random())
+            agent = FamilyAgent(i, self, [1, trait2], i)
+            self.schedule.add(agent)
+
+        for i in range(int(N * r), N):
+            trait2 = self.handler.float2bin(random.random())
+            agent = FamilyAgent(i, self, [0, trait2], i)
+            self.schedule.add(agent)
+
+    def reprductive_fitness(self, agent):
+        phenotype = self.handler.bin2float(agent.genotype[1])
+        mean, sd = 0.6, 0.1
+        return (np.pi*sd) * np.exp(-0.5*((phenotype-mean)/sd)**2)
 
     def reproduce(self):
         """
         function to generate the new population from the parent individuals
         """
-        mating_ind = random.sample([agent for agent in self.schedule.agents], k=self.N)
+        total_rep_fitness = [self.reprductive_fitness(a) for a in self.schedule.agents]
+        mating_ind =  np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2]) for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
         # print(mating_pairs)
         # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
         mutate = lambda x:  x if random.random() > self.mr else 1 - x
-        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
+        sex_rep = lambda x : x
+        newgen = [{"genotype": [mutate(random.choice([a.genotype for a in p]))], "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
         [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
 
 if __name__ == "__main__":
-    model = FamilyModel()
-    print(len([a for a in model.schedule.agent_buffer()
-          if a.genotype == 1]) / model.schedule.get_agent_count())
-    for i in range(400):
-        model.step()
-    print(len([a for a in model.schedule.agent_buffer()
-          if a.genotype == 1])/model.schedule.get_agent_count())
-    print("yee")
+    model = MultigeneFamilyModel()
+
+
+    # model = FamilyModel()
+    # print(len([a for a in model.schedule.agent_buffer()
+    #       if a.genotype == 1]) / model.schedule.get_agent_count())
+    # for i in range(400):
+    #     model.step()
+    # print(len([a for a in model.schedule.agent_buffer()
+    #       if a.genotype == 1])/model.schedule.get_agent_count())
+    # print("yee")
