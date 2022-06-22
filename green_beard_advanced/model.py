@@ -104,7 +104,7 @@ class BeardModelAdv(Model):
             #print("tot_n: ", self.tot_N)
             self.schedule.add(agent)
 
-        for i in range(3 * int(N * r), N):
+        for i in range(3 * int(N * r), N + 1):
             agent = BeardAgent(i, self, [0, 0])
             self.tot_N += 1
             #print("tot_n: ", self.tot_N)
@@ -123,7 +123,7 @@ class BeardModelAdv(Model):
             #tot +=1
         #print(tot)
 
-        for i in range(int(N * r), N):
+        for i in range(int(N * r), N + 1):
             agent = BeardAgent(i, self, [0, 0])
             self.tot_N += 1
             #print("tot_n: ", self.tot_N)
