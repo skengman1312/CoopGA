@@ -181,7 +181,7 @@ class MultigeneFamilyModel(FamilyModel):
         mean, sd = 0.6, 0.1
         return (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)
 
-    def allele2_computation(self, parent1, parent2):
+    def trait2_computation(self, parent1, parent2):
        # crossover
         gene_offspring = ''
         for p1, p2 in zip(parent1.genotype[1], parent2.genotype[1]):
@@ -212,10 +212,10 @@ class MultigeneFamilyModel(FamilyModel):
 
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": [mutate(random.choice([a.genotype[0] for a in p])),
-                                self.allele2_computation(p[0], p[1])],
+                                self.trait2_computation(p[0], p[1])],
                    "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
 
-        [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
+        [self.schedule.remove(a) for a in self.schedule.agent_buffer()]
         [self.schedule.add(FamilyAgent(
             i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
