@@ -54,7 +54,7 @@ class BeardModelAdv(Model):
     a model for simulation of the evolution of family related altruism
     """
 
-    def __init__(self, N=1000, r=0.25, dr=0.95, mr=0.001, cr=0.02):
+    def __init__(self, N=1000, r=0.25, dr=0.95, mr=0.001, cr=0.02, linkage_dis = False):
         """
         N: total number of agents
         r: initial ratio of each allele
@@ -83,54 +83,53 @@ class BeardModelAdv(Model):
           [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0]) / x.schedule.get_agent_count(),
                 "n_agents": lambda x: x.schedule.get_agent_count()})
 
-        """
-        # initialization without linkage disequilibrium
+        if not linkage_dis:
+            # initialization without linkage disequilibrium
 
-        for i in range(int(N * r)):
-            agent = BeardAgent(i, self, [1, 1])
-            self.tot_N += 1
-            #print("tot_n: ", self.tot_N)
-            self.schedule.add(agent)
+            for i in range(int(N * r)):
+                agent = BeardAgent(i, self, [1, 1])
+                self.tot_N += 1
+                #print("tot_n: ", self.tot_N)
+                self.schedule.add(agent)
 
-        for i in range(int(N * r), 2 * int(N * r)):
-            agent = BeardAgent(i, self, [1, 0])
-            self.tot_N += 1
-            #print("tot_n: ", self.tot_N)
-            self.schedule.add(agent)
+            for i in range(int(N * r), 2 * int(N * r)):
+                agent = BeardAgent(i, self, [1, 0])
+                self.tot_N += 1
+                #print("tot_n: ", self.tot_N)
+                self.schedule.add(agent)
 
-        for i in range(2 * int(N * r), 3 * int(N * r)):
-            agent = BeardAgent(i, self, [0, 1])
-            self.tot_N += 1
-            #print("tot_n: ", self.tot_N)
-            self.schedule.add(agent)
+            for i in range(2 * int(N * r), 3 * int(N * r)):
+                agent = BeardAgent(i, self, [0, 1])
+                self.tot_N += 1
+                #print("tot_n: ", self.tot_N)
+                self.schedule.add(agent)
 
-        for i in range(3 * int(N * r), N + 1):
-            agent = BeardAgent(i, self, [0, 0])
-            self.tot_N += 1
-            #print("tot_n: ", self.tot_N)
-            self.schedule.add(agent)
+            for i in range(3 * int(N * r), N + 1):
+                agent = BeardAgent(i, self, [0, 0])
+                self.tot_N += 1
+                #print("tot_n: ", self.tot_N)
+                self.schedule.add(agent)
 
-        """
+        else:
 
-        # initialization for linkage disequilibrium
+            # initialization for linkage disequilibrium
 
-        tot = 0
-        for i in range(int(N * r)):
-            agent = BeardAgent(i, self, [1, 1])
-            self.tot_N += 1
-            #print("tot_n: ", self.tot_N)
-            self.schedule.add(agent)
-            #tot +=1
-        #print(tot)
+            tot = 0
+            for i in range(int(N * r)):
+                agent = BeardAgent(i, self, [1, 1])
+                self.tot_N += 1
+                #print("tot_n: ", self.tot_N)
+                self.schedule.add(agent)
+                #tot +=1
+            #print(tot)
 
-        for i in range(int(N * r), N + 1):
-            agent = BeardAgent(i, self, [0, 0])
-            self.tot_N += 1
-            #print("tot_n: ", self.tot_N)
-            self.schedule.add(agent)
-            #tot += 1
-        #print(tot)
-        #"""
+            for i in range(int(N * r), N + 1):
+                agent = BeardAgent(i, self, [0, 0])
+                self.tot_N += 1
+                #print("tot_n: ", self.tot_N)
+                self.schedule.add(agent)
+                #tot += 1
+            #print(tot)
 
     def reproduce(self, max_child=4):
         """
@@ -176,7 +175,7 @@ class BeardModelAdv(Model):
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
         self.n_steps += 1
-        #print("step: ", self.n_steps)
+        print("step: ", self.n_steps)
         #print("num agents", num_agents)
         # print("N: ", num_agents)
 

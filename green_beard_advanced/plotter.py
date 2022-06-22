@@ -115,7 +115,7 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"]):
 
     # filling the background wrt mean line values
 
-    """ 
+    """
     #EDO
     plt.fill_between(list(range(0, ms + 1)),
                      y1=0,
@@ -196,7 +196,7 @@ def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub="")
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
     """
-    data = get_all_all_param_ID(data, params)
+    data = get_all_param_ID(data, params)
     msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
         plot_all_prevalence(data[m].reset_index(
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     #plot_all_prevalence(data1, title="Green Beard")
 
     #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium")
-    #multi_plot_all_prevalence(multidata1, sub="Green Beard")
+    multi_plot_all_prevalence(multidata1, sub="Green Beard")
 
     #TODO control the scatter 3D plot
 
