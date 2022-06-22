@@ -6,71 +6,8 @@ import numpy as np
 
 data = pd.read_csv("result.csv", index_col=0)
 data1 = pd.read_csv("result_nolinkage.csv", index_col=0)
-#multidata = pd.read_csv("multi_result.csv", index_col=0)
-#print(multidata)
-
-
-def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
-    """
-    function used to plot the mean of the allele prevalence across several simulation
-    """
-    # data = data.drop(columns=["N", "r", "RunId"])
-    # masking the values of each iteration
-    # creating a boolean mask for each iteration to be plotted
-    msk = [data["iteration"] == i for i in data["iteration"].unique()]
-    ms = data["Step"].max()  # max step
-    # grouping all the lines in a single df without other data
-    lines = pd.DataFrame(data={m: data[msk[m]]["altruistic fraction"].reset_index(
-        drop=True) for m in range(len(msk))})
-    # computing the mean
-    lines['mean'] = lines.mean(axis=1)
-    # print(lines)
-    # plotting each run in thin black
-    plt.plot(lines, color="black", lw=0.2)
-    # plotting mean in red
-    plt.plot(lines["mean"], color="red", lw=0.5, label="mean")
-    # setting plot limits
-    plt.axis((0, ms, 0, 1))
-    # filling the background wrt mean line
-    plt.legend(loc='best', framealpha=0.2)
-    plt.fill_between(list(range(0, ms + 1)),
-                     lines["mean"], y2=1, color="#595FB5", alpha=0.9)
-    plt.fill_between(list(range(0, ms + 1)),
-                     lines["mean"], color="#4DBD60", alpha=0.9)
-    for spine in plt.gca().spines.values():
-        spine.set_visible(False)
-    plt.xlabel("Steps")
-    plt.ylabel("Allele frequency")
-    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
-    subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
-    plt.title(f"{maintitle}\n{subtitle}")
-    filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
-    plt.savefig(filename)
-    plt.show()
-    pass
-
-
-def get_param_ID(data, params=["N", "r", "dr", "mr"]):
-    """
-
-    """
-    data["pID"] = data[params].astype(str).sum(axis=1)
-    mapdict = {data["pID"].unique()[i]: i for i in range(
-        len(data["pID"].unique()))}
-    data["pID"] = data["pID"].apply(lambda x: mapdict[x])
-    return data
-
-
-def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
-    """
-    function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
-    in multiple plots
-    """
-    data = get_param_ID(data, params)
-    msk = [data["pID"] == i for i in data["pID"].unique()]
-    for m in msk:
-        plot_prevalence(data[m].reset_index(
-            drop=True), title=f"Run {data[m]['pID'].max() + 1}", params=params)
+multidata = pd.read_csv("multi_result.csv", index_col=0)
+multidata1 = pd.read_csv("multi_result_nolinkage.csv", index_col=0)
 
 
 def scatter3D(data, param1, param2, result, labels, all_params, title=""):
@@ -136,22 +73,19 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
     plt.show()
 
-def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
+
+def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
     # data = data.drop(columns=["N", "r", "RunId"])
     # masking the values of each iteration
     # creating a boolean mask for each iteration to be plotted
-    print(data["r"])
-    msk = [data["iteration"] == i for i in data["iteration"].unique()]
-    #print(msk)
-    ms = data["Step"].max()  # max step  printa step r
-    #print(ms)
-    # grouping all the lines in a single df without other data
-    lines = pd.DataFrame(data={m: data[msk[m]]["altruistic fraction"].reset_index(
-        drop=True) for m in range(len(msk))})
 
+    msk = [data["iteration"] == i for i in data["iteration"].unique()]
+    ms = data["Step"].max()  # max step  printa step r
+
+    # grouping all the lines in a single df without other data
     lines_true = pd.DataFrame(data={m: data[msk[m]]["true beards fraction"].reset_index(
         drop=True) for m in range(len(msk))})
     lines_suckers = pd.DataFrame(data={m: data[msk[m]]["suckers fraction"].reset_index(
@@ -161,23 +95,25 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
     lines_cowards = pd.DataFrame(data={m: data[msk[m]]["cowards fraction"].reset_index(
         drop=True) for m in range(len(msk))})
 
-
     # computing the mean
-    lines['mean'] = lines.mean(axis=1)
     lines_true['mean'] = lines_true.mean(axis=1)
     lines_suckers['mean'] = lines_suckers.mean(axis=1)
     lines_impostors['mean'] = lines_impostors.mean(axis=1)
     lines_cowards['mean'] = lines_cowards.mean(axis=1)
 
-    # plotting each run in thin black
-    #plt.plot(lines, color="black", lw=0.2)
-    # plotting mean in red
-    #plt.plot(lines["mean"], color="red", lw=0.5, label="mean")
     # setting plot limits
     plt.axis((0, ms, 0, 1))
-    # filling the background wrt mean line
-    plt.legend(loc='best', framealpha=0.2)
-    #"""
+
+    # plot lines
+    plt.plot(lines_true['mean'], color="#120A8F", lw=0.5)
+    plt.plot(lines_suckers['mean'], color="#FF1493", lw=0.5)
+    plt.plot(lines_cowards['mean'], color="#B8860B", lw=0.5)
+    plt.plot(lines_impostors['mean'], color="#006400", lw=0.5)
+
+    # filling the background wrt mean line values
+
+    """ 
+    #EDO
     plt.fill_between(list(range(0, ms + 1)),
                      y1=0,
                      y2=lines_impostors["mean"],
@@ -200,51 +136,87 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
                      color="#75663F",
                      alpha=0.9)
     """
+    """#ROSS
 
     plt.fill_between(list(range(0, ms + 1)),
                      y1=0,
-                     y2=lines_impostors["mean"],
+                     y2=lines_true["mean"],
                      color="#120A8F",
                      alpha=0.9)
 
     plt.fill_between(list(range(0, ms + 1)),
-                     y1=lines_impostors["mean"],
-                     y2=lines_true["mean"] ,
-                     color="#FFA500", alpha=0.9)
-    plt.fill_between(list(range(0, ms + 1)),
                      y1=lines_true["mean"],
-                     y2=lines_cowards["mean"],
+                     y2=lines_cowards["mean"] ,
+                     color="#FFA500", alpha=0.9)
+
+    plt.fill_between(list(range(0, ms + 1)),
+                     y1=lines_cowards["mean"],
+                     y2=lines_suckers["mean"],
                      color="#7FFFD4",
                      alpha=0.9)
 
     plt.fill_between(list(range(0, ms + 1)),
                      y1=lines_cowards["mean"],
-                     y2= lines_suckers["mean"],
+                     y2= lines_impostors["mean"],
                      color="#75663F",
                      alpha=0.9)
     """
-    for spine in plt.gca().spines.values():
-        spine.set_visible(False)
+
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency")
-    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    maintitle = f"{title}" if title else "Green Beard"
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
 
     plt.title(f"{maintitle}\n{subtitle}")
+    plt.legend(["true beards", "suckers", "cowards", "impostors"], loc='best', framealpha=0.2, title="Labels")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filename)
     plt.show()
     pass
 
-labels = ["mutation rate", "death rate", "ending freq altruism"]
-#scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+
+def get_param_ID(data, params=["N", "r", "dr", "mr"]):
+    """
+
+    """
+    data["pID"] = data[params].astype(str).sum(axis=1)
+    mapdict = {data["pID"].unique()[i]: i for i in range(
+        len(data["pID"].unique()))}
+    data["pID"] = data["pID"].apply(lambda x: mapdict[x])
+    return data
+
+
+def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub=""):
+    """
+    function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
+    in multiple plots
+    """
+    data = get_param_ID(data, params)
+    msk = [data["pID"] == i for i in data["pID"].unique()]
+    for m in msk:
+        plot_all_prevalence(data[m].reset_index(
+            drop=True), title=f"Run {data[m]['pID'].max() + 1}: " + sub, params=params)
+
+
+if __name__ == "__main__":
+
+    #plot_all_prevalence(data, title="Green Beard linkage disequilibrium")
+    #plot_all_prevalence(data1, title="Green Beard")
+
+    #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium")
+    #multi_plot_all_prevalence(multidata1, sub="Green Beard")
+
+    #TODO control the scatter 3D plot
+
+    labels = ["mutation rate", "death rate", "ending freq altruism"]
+    # scatter3D(data, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+        # all_params=["N", "r", "dr", "mr"], title="scatter")
+    # scatter3D(data1, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+        # all_params=["N", "r", "dr", "mr"], title="scatter")
+
+    #scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+          #all_params=["N", "r", "dr", "mr"], title="scatter")
+    #scatter3D(multidata1, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
           #all_params=["N", "r", "dr", "mr"], title="scatter")
 
-#scatter3D(data, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
-          #all_params=["N", "r", "dr", "mr"], title="scatter")
 
-#multi_plot_prevalence(multidata)
-#plot_prevalence(data)
-
-plot_all_prevalence(data)
-plot_all_prevalence(data1)
