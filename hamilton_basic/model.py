@@ -189,8 +189,8 @@ class MultigeneFamilyModel(FamilyModel):
 
         # mutation
         mutate = lambda x: x if random.random() > self.mr else str(1 - int(x))
-        gene_offspring_mutated = ''
-        for g in gene_offspring:
+        gene_offspring_mutated = '0b'
+        for g in gene_offspring[2:]:
             gene_offspring_mutated += mutate(g)
 
         return gene_offspring_mutated
