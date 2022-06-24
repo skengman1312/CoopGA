@@ -141,7 +141,7 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
 # ----- FOR 4 ALLELES ------
 
-def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], frequency= True):
+def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], frequency= True, fill= True):
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
@@ -188,36 +188,37 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
     else:
         plt.axis((0, ms, 0, max(data["n_agents"])))
 
-    """# plot lines
-    plt.plot(lines_true['mean'], color="#120A8F", lw=0.5) 
-    plt.plot(lines_suckers['mean'], color="#FF1493", lw=0.5)
-    plt.plot(lines_cowards['mean'], color="#B8860B", lw=0.5)
-    plt.plot(lines_impostors['mean'], color="#006400", lw=0.5)"""
+    if not fill:
+        # plot lines
+        plt.plot(lines_true['mean'], color="#120A8F", lw=0.5)
+        plt.plot(lines_suckers['mean'], color="#FF1493", lw=0.5)
+        plt.plot(lines_cowards['mean'], color="#F4A460", lw=0.5)
+        plt.plot(lines_impostors['mean'], color="#8FBC8F", lw=0.5)
 
-    # filling the background wrt mean line values
+    else:
+        # filling the background wrt mean line values
+        # EDO
+        plt.fill_between(list(range(0, ms + 1)),
+                         y1=0,
+                         y2=lines_true["mean"],
+                         color="#120A8F",
+                         alpha=0.9)
 
-    #EDO
-    plt.fill_between(list(range(0, ms + 1)),
-                     y1=0,
-                     y2=lines_impostors["mean"],
-                     color="#006400",
-                     alpha=0.9)
+        plt.fill_between(list(range(0, ms + 1)),
+                         y1=lines_true["mean"],
+                         y2=lines_true["mean"] + lines_suckers["mean"],
+                         color="#FF1493", alpha=0.9)
+        plt.fill_between(list(range(0, ms + 1)),
+                         y1=lines_true["mean"] + lines_suckers["mean"],
+                         y2=lines_cowards["mean"] + lines_true["mean"] + lines_suckers["mean"],
+                         color="#F4A460",
+                         alpha=0.9)
 
-    plt.fill_between(list(range(0, ms + 1)),
-                     y1=lines_impostors["mean"],
-                     y2=lines_true["mean"]+lines_impostors["mean"],
-                     color="#120A8F", alpha=0.9)
-    plt.fill_between(list(range(0, ms + 1)),
-                     y1=lines_true["mean"] + lines_impostors["mean"],
-                     y2= lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"],
-                     color="#B8860B",
-                     alpha=0.9)
-
-    plt.fill_between(list(range(0, ms + 1)),
-                     y1=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"],
-                     y2=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"]+lines_suckers["mean"],
-                     color="#FF1493",
-                     alpha=0.9)
+        plt.fill_between(list(range(0, ms + 1)),
+                         y1=lines_cowards["mean"] + lines_true["mean"] + lines_suckers["mean"],
+                         y2=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"] + lines_suckers["mean"],
+                         color="#8FBC8F",
+                         alpha=0.9)
 
 
     plt.xlabel("Steps")
@@ -226,8 +227,8 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
 
     plt.title(f"{maintitle}\n{subtitle}")
-    #plt.legend(["true beards", "suckers", "cowards", "impostors"], loc='best', framealpha=0.2, title="Labels")
-    plt.legend(["impostors","true beards", "cowards","suckers"], loc='best', framealpha=0.2, title="Labels")
+    plt.legend(["true beards", "suckers", "cowards", "impostors"], loc='best', framealpha=0.2, title="Labels")
+    #plt.legend(["impostors","true beards", "cowards","suckers"], loc='best', framealpha=0.2, title="Labels")
 
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filename)
@@ -278,7 +279,7 @@ if __name__ == "__main__":
 
     #plot_all_prevalence(data, title="Green Beard linkage disequilibrium", frequency=True)
     # frequency=false do the graph according to the agent numbers
-    plot_all_prevalence(data1, title="Green Beard", frequency=False)
+    plot_all_prevalence(data1, title="Green Beard", frequency=True, fill=True)
 
     #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium", frequency=True)
     #multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True)
