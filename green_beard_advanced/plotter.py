@@ -188,14 +188,14 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
     else:
         plt.axis((0, ms, 0, max(data["n_agents"])))
 
-    # plot lines
+    """# plot lines
     plt.plot(lines_true['mean'], color="#120A8F", lw=0.5)
     plt.plot(lines_suckers['mean'], color="#FF1493", lw=0.5)
     plt.plot(lines_cowards['mean'], color="#B8860B", lw=0.5)
-    plt.plot(lines_impostors['mean'], color="#006400", lw=0.5)
+    plt.plot(lines_impostors['mean'], color="#006400", lw=0.5)"""
 
     # filling the background wrt mean line values
-    """
+
     #EDO
     plt.fill_between(list(range(0, ms + 1)),
                      y1=0,
@@ -218,7 +218,7 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
                      y2=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"]+lines_suckers["mean"],
                      color="#75663F",
                      alpha=0.9)
-    """
+
 
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency" if frequency else "Number of individuals")
@@ -274,9 +274,9 @@ if __name__ == "__main__":
 
     #### ----- FOR 4 ALLELES ------
 
-    plot_all_prevalence(data, title="Green Beard linkage disequilibrium", frequency=True)
+    #plot_all_prevalence(data, title="Green Beard linkage disequilibrium", frequency=True)
     # frequency=false do the graph according to the agent numbers
-    #plot_all_prevalence(data1, title="Green Beard", frequency=True)
+    plot_all_prevalence(data1, title="Green Beard", frequency=True)
 
     #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium", frequency=True)
     #multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True)
