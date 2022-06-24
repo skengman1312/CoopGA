@@ -193,19 +193,22 @@ class BeardModelAdv(Model):
                 #child_genotype = agent1.genotype
                 # mutate = lambda x: x if random.random() > self.mr else 1 - x
                 # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
+                gen1 = child_genotype[0]
+                gen2 = child_genotype[1]
 
                 if random.random() < self.mr:
                     tot_mutation += 1
-                    child_genotype[0] = 1 - child_genotype[0]
+                    gen1 = 1 - gen1
 
                 if random.random() < self.mr:
                     tot_mutation += 1
-                    child_genotype[1] = 1 - child_genotype[1]
+                    gen2 = 1 - gen2
 
                 """child_genotype[0] = mutate(child_genotype[0], self.mr, tot)
                 child_genotype[1] = mutate(child_genotype[1], self.mr, tot)"""
 
-                child = BeardAgent(self.next_id(), self, child_genotype)
+                #child = BeardAgent(self.next_id(), self, child_genotype)
+                child = BeardAgent(self.next_id(), self, [gen1, gen2])
                 #print(child.unique_id)
                 # print("child ID: ", child.unique_id)
                 self.schedule.add(child)

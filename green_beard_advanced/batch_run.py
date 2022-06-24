@@ -6,7 +6,7 @@ if __name__ == '__main__':
     params = {"N": 1000,
               "r": 0.25,  # [i*0.1 for i in range(2, 7, 1)], #0.25, #0.50
               "dr": 0.95,
-              "mr": 0.0001                     , # [0.0001 * x for x in range(1, 2)],  # 0.001,
+              "mr": 0.001                     , # [0.0001 * x for x in range(1, 2)],  # 0.001,
               "cr": 0,
               "linkage_dis": False}  # 0.02
 

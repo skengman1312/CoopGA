@@ -188,15 +188,15 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
     else:
         plt.axis((0, ms, 0, max(data["n_agents"])))
 
-    """# plot lines
+    # plot lines
     plt.plot(lines_true['mean'], color="#120A8F", lw=0.5)
     plt.plot(lines_suckers['mean'], color="#FF1493", lw=0.5)
     plt.plot(lines_cowards['mean'], color="#B8860B", lw=0.5)
-    plt.plot(lines_impostors['mean'], color="#006400", lw=0.5)"""
+    plt.plot(lines_impostors['mean'], color="#006400", lw=0.5)
 
     # filling the background wrt mean line values
 
-    #EDO
+    """ #EDO
     plt.fill_between(list(range(0, ms + 1)),
                      y1=0,
                      y2=lines_impostors["mean"],
@@ -218,7 +218,7 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
                      y2=lines_cowards["mean"] + lines_true["mean"] + lines_impostors["mean"]+lines_suckers["mean"],
                      color="#75663F",
                      alpha=0.9)
-
+    """
 
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency" if frequency else "Number of individuals")
