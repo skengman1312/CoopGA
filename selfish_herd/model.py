@@ -190,7 +190,7 @@ class FoodModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(self.num_agents + self.num_food, self.num_agents + self.num_food + self.num_pred):
-            a = PredatorAgent(i, self, "predator", sight=sight)
+            a = PredatorAgent(i, self, type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -199,12 +199,13 @@ class FoodModel(Model):
 
     def reproduce(self, max_child=4):
         """
-        function to generate the new population from the parent individuals, only for prey
+        function to generate the new population from the parent individuals both for prey and predators
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
         randomly from one of the 2 parents
-        During the reproduction there is the chance of crossover and mutation
+        During the reproduction there is the chance of mutation
         """
 
+        # Prey reproduction
         prey_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "creature"],
                                     k=self.schedule.get_agent_count())
 
@@ -218,6 +219,23 @@ class FoodModel(Model):
                 if random.random() < self.mr:  #random mutation
                     gen1 = round(random.uniform(-1, 1), 2)
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
+                self.schedule.add(child)
+
+            self.schedule.remove(agent1)
+            self.schedule.remove(agent2)
+
+        # Predator reproduction
+        # non mi è chiaro se facciamo riprodurre anche loro oppure no ma in caso il codice è pronto
+        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "predator"],
+                                    k=self.schedule.get_agent_count())
+
+        for i in range(0, len(pred_agents)-1, 2):
+            agent1 = pred_agents[i]
+            agent2 = pred_agents[i + 1]
+            n_child = random.randint(2, max_child)
+
+            for j in range(n_child):
+                child = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight)
                 self.schedule.add(child)
 
             self.schedule.remove(agent1)
@@ -341,7 +359,8 @@ class RunningFoodModel(FoodModel):
                                            agent_reporters={"Health": "hp"})
         # Create agents
         for i in range(self.num_agents):
-            a = RunningFoodAgent(i, self, "creature", sight=sight)
+            genotype = [round(random.uniform(-1, 1), 2)]
+            a = RunningFoodAgent(i, self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -349,7 +368,7 @@ class RunningFoodModel(FoodModel):
             self.grid.place_agent(a, (x, y))
 
         for i in range(self.num_agents, self.num_agents + self.num_food):
-            a = RunningFoodAgent(i, self, "food")
+            a = RunningFoodAgent(i, self, genotype=[], type="food")
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -357,7 +376,7 @@ class RunningFoodModel(FoodModel):
             self.grid.place_agent(a, (x, y))
 
         for i in range(self.num_agents + self.num_food, self.num_agents + self.num_food + self.num_pred):
-            a = RunningFoodAgent(i, self, "predator", sight=sight)
+            a = RunningFoodAgent(i, self, genotype=[], type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)

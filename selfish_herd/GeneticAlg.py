@@ -1,5 +1,5 @@
 import random
-from math import modf,comb
+from math import modf, comb
 from itertools import combinations
 
 #if we take 15 individual we can make 105 groups of 2, so we can generate 210 children:
