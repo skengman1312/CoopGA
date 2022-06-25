@@ -145,7 +145,7 @@ class MultigeneFamilyAgent(FamilyAgent):
         """
         Implementation of a generic altruistic action
         """
-        if self.genotype[0]:  # CHANGED HERE
+        if self.genotype[0] == 1:  # CHANGED HERE
             if random.random() > self.model.dr:
                 return
             else:
@@ -154,7 +154,8 @@ class MultigeneFamilyAgent(FamilyAgent):
             [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
             ) if a.family == self.family and a.unique_id != self.unique_id]
 
-    pass
+    def step(self) -> None:
+        self.altruistic_action()
 
 
 class MultigeneFamilyModel(FamilyModel):
@@ -181,7 +182,7 @@ class MultigeneFamilyModel(FamilyModel):
     def reproductive_fitness(self, agent):
         phenotype = self.handler.bin2float(agent.genotype[1])
         mean, sd = 0.6, 0.1
-        return phenotype #@(np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)
+        return phenotype +0.000001 #@(np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)
 
     def trait2_computation(self, parent1, parent2):
        # crossover
@@ -204,8 +205,10 @@ class MultigeneFamilyModel(FamilyModel):
         total_rep_fitness = np.array([self.reproductive_fitness(a) for a in self.schedule.agents])
         #print(len(total_rep_fitness))
         total_rep_fitness /= total_rep_fitness.sum()
+        #print(np.count_nonzero(total_rep_fitness))
         #print(len(total_rep_fitness))
-        print(total_rep_fitness)
+        #print(len(total_rep_fitness))
+        #print(total_rep_fitness)
         mating_ind = np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
@@ -222,7 +225,25 @@ class MultigeneFamilyModel(FamilyModel):
         [self.schedule.add(FamilyAgent(
             i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
 
+    def step(self) -> None:
+        # creating the "interaction rooms"
+        # we derived it from the wcs to have at least 500 individuals left,
+        danger_number = self.N // 4
+        # it has to be generalized for n child, now takes as granted 4 childs
+        ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
+        danger_fam = random.sample(ufid, danger_number)
+        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f]
+                 for f in danger_fam]
+        active = [random.choice(r).unique_id for r in rooms]
 
+        self.schedule.step(active)
+
+        self.reproduce()
+        self.datacollector.collect(self)
+
+        # reproduction part
+
+        # mesa.time.RandomActivationByType
 if __name__ == "__main__":
     model = MultigeneFamilyModel(N = 10, mr = 0.001, r = 0.5)
     # model = FamilyModel()

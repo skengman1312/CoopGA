@@ -15,7 +15,7 @@ if __name__ == '__main__':
     results = batch_run(
         MultigeneFamilyModel,
         parameters=params,
-        iterations=1,
+        iterations=10,
         max_steps=500,
         number_processes=None,
         data_collection_period=1,
