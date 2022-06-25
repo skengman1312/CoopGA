@@ -101,4 +101,4 @@ if __name__ == "__main__":
     print(max(final_rep_fitnes))
     #print(finalpop_trait2)
     print(counts)
-    print("yee")
+    print("yee<")
