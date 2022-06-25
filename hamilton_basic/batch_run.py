@@ -1,4 +1,4 @@
-from model import MultigeneFamilyModel
+from multigene_model import MultigeneFamilyModel
 from mesa.batchrunner import batch_run
 import pandas as pd
 
