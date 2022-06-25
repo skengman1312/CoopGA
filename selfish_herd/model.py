@@ -4,6 +4,7 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 from math import sqrt
+from mesa.time import BaseScheduler
 
 dist = lambda x, y: sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
 
@@ -26,12 +27,12 @@ def predator_food_stat(model):
         return sum(agent_food) / len(agent_food)
 
 
-class PrayAgent(Agent):
+class PreyAgent(Agent):
     """A Food Agent seeking survival."""
 
     def __init__(self, unique_id, model, genotype: list, type: str, sight=None):
         """
-        Pray Agent init function
+        Prey Agent init function
         Type can be either food or creature #in questo caso non teniamo però conto del food
         """
         super().__init__(unique_id, model)
@@ -141,7 +142,9 @@ class PredatorAgent(Agent):
 class FoodModel(Model):
     """A model with some number of food, creatures and predators."""
 
-    def __init__(self, n_creatures: int, n_food: int, n_pred: int, sight: int, width: int, height: int):
+    # TODO non so se avere due tipi di agenti (prey e predator) nello stesso scheduler possa creare problemi
+
+    def __init__(self, n_creatures: int, n_food: int, n_pred: int, sight: int, width: int, height: int, mr=0.001):
         """
         n_creatures: number of creatures
         n_food: number of food
@@ -151,6 +154,8 @@ class FoodModel(Model):
         self.num_agents = n_creatures
         self.num_food = n_food
         self.num_pred = n_pred
+        self.mr = mr
+        self.sight = sight
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
 
@@ -165,11 +170,11 @@ class FoodModel(Model):
             agent_reporters={"Health": "hp"})
 
         # Create agents
-        # Every agent has a genotype described by a number [-1, 1] that influence its behaviour
+        # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
         # -1 encodes for "run", 1 encodes for "form a herd"
         for i in range(self.num_agents):
-            genotype = [random.uniform(-1, 1)]
-            a = PrayAgent(i, self, genotype=genotype, type="creature", sight=sight)
+            genotype = [round(random.uniform(-1, 1), 2)]
+            a = PreyAgent(i, self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -177,7 +182,7 @@ class FoodModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(self.num_agents, self.num_agents + self.num_food):
-            a = PrayAgent(i, self, type="food")
+            a = PreyAgent(i, self, type="food")
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -191,6 +196,32 @@ class FoodModel(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
+
+    def reproduce(self, max_child=4):
+        """
+        function to generate the new population from the parent individuals, only for prey
+        select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
+        randomly from one of the 2 parents
+        During the reproduction there is the chance of crossover and mutation
+        """
+
+        prey_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "creature"],
+                                    k=self.schedule.get_agent_count())
+
+        for i in range(0, len(prey_agents)-1, 2):
+            agent1 = prey_agents[i]
+            agent2 = prey_agents[i + 1]
+            n_child = random.randint(2, max_child)
+
+            for j in range(n_child):
+                gen1 = []
+                if random.random() < self.mr:  #random mutation
+                    gen1 = round(random.uniform(-1, 1), 2)
+                child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
+                self.schedule.add(child)
+
+            self.schedule.remove(agent1)
+            self.schedule.remove(agent2)
 
     def step(self):
         """Advance the model by one step."""
@@ -214,7 +245,7 @@ class CustomFoodModel(FoodModel):
     pass
 
 
-class CustomFoodAgent(PrayAgent):
+class CustomFoodAgent(PreyAgent):
     """
      Per testare nuove cose direi di creare nuove classi figlie e modificare quelle; aggiunginedo e
      modificando metodi quando serve.
@@ -223,9 +254,9 @@ class CustomFoodAgent(PrayAgent):
      """
     pass
 
-# TODO instead of fear, implement herds
+# TODO instead of fear, implement herds according to genotype
 
-class RunningFoodAgent(PrayAgent):
+class RunningFoodAgent(PreyAgent):
     """
     Agent model with fear running from preds
 
