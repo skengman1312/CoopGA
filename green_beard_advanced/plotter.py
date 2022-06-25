@@ -246,7 +246,7 @@ def get_all_param_ID(data, params=["N", "r", "dr", "mr", "cr"]):
     return data
 
 
-def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub=""):
+def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub="", frequency= True, fill=True):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
@@ -255,7 +255,7 @@ def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub="")
     msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
         plot_all_prevalence(data[m].reset_index(
-            drop=True), title=f"Run {data[m]['pID'].max() + 1}: " + sub, params=params)
+            drop=True), title=f"Run {data[m]['pID'].max() + 1}: " + sub, params=params, frequency=frequency, fill=fill)
 
 
 if __name__ == "__main__":
@@ -279,9 +279,9 @@ if __name__ == "__main__":
 
     #plot_all_prevalence(data, title="Green Beard linkage disequilibrium", frequency=True)
     # frequency=false do the graph according to the agent numbers
-    plot_all_prevalence(data1, title="Green Beard", frequency=True, fill=True)
+    #plot_all_prevalence(data1, title="Green Beard", frequency=True, fill=False)
 
-    #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium", frequency=True)
-    #multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True)
+    #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium", frequency=True, fill=False)
+    multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True, fill=False)
 
 

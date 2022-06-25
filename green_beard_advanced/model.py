@@ -49,18 +49,6 @@ def crossover(agent1, agent2):
     return [allele1, allele2]
 
 
-"""def mutate(allele, mr, tot):
-    #x: x if random.random() > self.mr else 1 - x
-    prt = random.random()
-    print(prt)
-    if prt < mr:
-        tot += 1
-        print("prt: ", prt)
-        print(mr)
-        return 1 - allele
-    return allele"""
-
-
 class BeardModelAdv(Model):
     """
     a model for simulation of the evolution of family related altruism
@@ -74,6 +62,7 @@ class BeardModelAdv(Model):
         mr: mutation rate
         cr: crossover rate
         """
+
         super().__init__()
         self.schedule = SocialActivation(self)
         self.n_steps = 0
@@ -88,68 +77,49 @@ class BeardModelAdv(Model):
         self.running = True
         self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
             [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
-                                                            "true beards fraction": lambda x: len(
-                                                                [a for a in x.schedule.agent_buffer() if
-                                                                 a.genotype[0] == 1 and a.genotype[
-                                                                     1] == 1]) / x.schedule.get_agent_count(),
-                                                            "suckers fraction": lambda x: len(
-                                                                [a for a in x.schedule.agent_buffer() if
-                                                                 a.genotype[0] == 1 and a.genotype[
-                                                                     1] == 0]) / x.schedule.get_agent_count(),
-                                                            "impostors fraction": lambda x: len(
-                                                                [a for a in x.schedule.agent_buffer() if
-                                                                 a.genotype[0] == 0 and a.genotype[
-                                                                     1] == 1]) / x.schedule.get_agent_count(),
-                                                            "cowards fraction": lambda x: len(
-                                                                [a for a in x.schedule.agent_buffer() if
-                                                                 a.genotype[0] == 0 and a.genotype[
-                                                                     1] == 0]) / x.schedule.get_agent_count(),
-                                                            "n_agents": lambda x: x.schedule.get_agent_count()})
+                "true beards fraction": lambda x: len(
+            [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 1]) / x.schedule.get_agent_count(),
+                "suckers fraction": lambda x: len(
+                    [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1 and a.genotype[1] == 0]) / x.schedule.get_agent_count(),
+                "impostors fraction": lambda x: len(
+                    [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 1]) / x.schedule.get_agent_count(),
+                "cowards fraction": lambda x: len(
+                    [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0]) / x.schedule.get_agent_count(),
+                "n_agents": lambda x: x.schedule.get_agent_count()})
 
         if not linkage_dis:
             # initialization without linkage disequilibrium
             for i in range(int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [1, 1])
                 self.tot_N += 1
-                # print("tot_n: ", self.tot_N)
                 self.schedule.add(agent)
 
             for i in range(int(N * r), 2 * int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [1, 0])
                 self.tot_N += 1
-                # print("tot_n: ", self.tot_N)
                 self.schedule.add(agent)
 
             for i in range(2 * int(N * r), 3 * int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [0, 1])
                 self.tot_N += 1
-                # print("tot_n: ", self.tot_N)
                 self.schedule.add(agent)
 
             for i in range(3 * int(N * r), N + 1):
                 agent = BeardAgent(self.next_id(), self, [0, 0])
                 self.tot_N += 1
-                # print("tot_n: ", self.tot_N)
                 self.schedule.add(agent)
 
         else:
             # initialization for linkage disequilibrium
-            tot = 0
             for i in range(int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [1, 1])
                 self.tot_N += 1
-                # print("tot_n: ", self.tot_N)
                 self.schedule.add(agent)
-                # tot +=1
-            # print(tot)
 
             for i in range(int(N * r), N + 1):
                 agent = BeardAgent(self.next_id(), self, [0, 0])
                 self.tot_N += 1
-                # print("tot_n: ", self.tot_N)
                 self.schedule.add(agent)
-                # tot += 1
-            # print(tot)
 
     def reproduce(self, max_child=4):
         """
@@ -160,76 +130,44 @@ class BeardModelAdv(Model):
         """
 
         agents = random.sample([agent for agent in self.schedule.agents], k=self.schedule.get_agent_count())
-        """if self.n_steps == 400:
-            for a in agents:
-                print(a.genotype)"""
-        tot_mutation = 0
-        for i in range(0, len(agents)-1, 2):
-        #agent_iter = self.schedule.agent_buffer(shuffled=True)
-        #print(self.schedule.get_agent_count())
-        #for agent1 in agent_iter:
-        #    agent2 = agent_iter.__next__()
-            #print("ciao")
-            #print(agent1.unique_id)
-            #print(agent2.unique_id)
 
-            # self.tot_N += 1
+        for i in range(0, len(agents)-1, 2):
             agent1 = agents[i]
-            #agent1.__class__ = BeardAgent
             agent2 = agents[i + 1]
-            #agent2.__class__ = BeardAgent
-            #print("si accoppiano: ", agent1.genotype, agent2.genotype)
             n_child = random.randint(2, max_child)
-            # print("n_child ", n_child)
 
             for j in range(n_child):
                 self.tot_N += 1
-                # print("totN :", self.tot_N)
                 if random.random() < self.cr:
                     child_genotype = crossover(agent1, agent2)
                 else:
                     child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
-                    #print(child_genotype)
-                #child_genotype = agent1.genotype
+
                 # mutate = lambda x: x if random.random() > self.mr else 1 - x
                 # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
                 gen1 = child_genotype[0]
                 gen2 = child_genotype[1]
 
                 if random.random() < self.mr:
-                    tot_mutation += 1
                     gen1 = 1 - gen1
 
                 if random.random() < self.mr:
-                    tot_mutation += 1
                     gen2 = 1 - gen2
 
-                """child_genotype[0] = mutate(child_genotype[0], self.mr, tot)
-                child_genotype[1] = mutate(child_genotype[1], self.mr, tot)"""
-
-                #child = BeardAgent(self.next_id(), self, child_genotype)
                 child = BeardAgent(self.next_id(), self, [gen1, gen2])
-                #print(child.unique_id)
-                # print("child ID: ", child.unique_id)
                 self.schedule.add(child)
 
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
 
-    """        if tot_mutation >= 3:
-            print("sono allo step: ", self.n_steps)
-            print("ho fatto: ", tot_mutation, " mutation")"""
-
     def step(self) -> None:
-        #print("step: ", self.n_steps)
+
         print("numero altruisti: ", len([a for a in self.schedule.agent_buffer() if a.genotype[0] == 1]))
         # creating the "interaction rooms"
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
         self.n_steps += 1
-        # print("step: ", self.n_steps)
-        # print("num agents", num_agents)
-        # print("N: ", num_agents)
+
         if not self.linkage_dis:
             danger_number = num_agents // 1.893  # we derived it from the wcs to have at least 500 individuals left,
         else:
@@ -270,7 +208,6 @@ class BeardModelAdv(Model):
                     self.schedule.remove(agent2)
 
         agents_id = [a.unique_id for a in self.schedule.agents]
-
         self.schedule.step(agents_id)
 
         self.reproduce()
