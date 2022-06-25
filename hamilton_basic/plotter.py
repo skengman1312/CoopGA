@@ -143,8 +143,8 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
 
 labels = ["mutation rate", "death rate", "ending freq altruism"]
-scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
-          all_params=["N", "r", "dr", "mr"], title="scatter")
+#scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
+#          all_params=["N", "r", "dr", "mr"], title="scatter")
 
-# multi_plot_prevalence(multidata)
-# plot_prevalence(data)
+#multi_plot_prevalence(multidata)
+plot_prevalence(multidata)

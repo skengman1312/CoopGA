@@ -164,6 +164,8 @@ class MultigeneFamilyModel(FamilyModel):
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         self.handler = FloatBinHandler(3, 1)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
+        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
+            [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count()})
 
     def add_agents(self, N, r):
         for i in range(int(N * r)):
@@ -179,7 +181,7 @@ class MultigeneFamilyModel(FamilyModel):
     def reproductive_fitness(self, agent):
         phenotype = self.handler.bin2float(agent.genotype[1])
         mean, sd = 0.6, 0.1
-        return (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)
+        return phenotype #@(np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)
 
     def trait2_computation(self, parent1, parent2):
        # crossover
@@ -199,11 +201,12 @@ class MultigeneFamilyModel(FamilyModel):
         """
         function to generate the new population from the parent individuals
         """
-        total_rep_fitness = np.array([self.reproductive_fitness(
-            a) for a in self.schedule.agents])
+        total_rep_fitness = np.array([self.reproductive_fitness(a) for a in self.schedule.agents])
+        #print(len(total_rep_fitness))
         total_rep_fitness /= total_rep_fitness.sum()
-        mating_ind = np.random.choice(
-            self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
+        #print(len(total_rep_fitness))
+        print(total_rep_fitness)
+        mating_ind = np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
         # print(len(set(mating_ind)))
@@ -221,13 +224,21 @@ class MultigeneFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = MultigeneFamilyModel()
-
+    model = MultigeneFamilyModel(N = 10, mr = 0.001, r = 0.5)
     # model = FamilyModel()
-    # print(len([a for a in model.schedule.agent_buffer()
-    #       if a.genotype == 1]) / model.schedule.get_agent_count())
-    # for i in range(400):
-    #     model.step()
-    # print(len([a for a in model.schedule.agent_buffer()
-    #       if a.genotype == 1])/model.schedule.get_agent_count())
-    # print("yee")
+    print(len([a for a in model.schedule.agent_buffer()
+          if a.genotype[0] == 1]) / model.schedule.get_agent_count())
+    early_rep_fitness = [model.reproductive_fitness(a) for a in model.schedule.agents]
+    for i in range(5):
+        model.step()
+    print(len([a for a in model.schedule.agent_buffer()
+          if a.genotype[0] == 1])/model.schedule.get_agent_count())
+    finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
+    final_rep_fitnes = [model.reproductive_fitness(a) for a in model.schedule.agents]
+    counts = {f: final_rep_fitnes.count(f) for f in set(final_rep_fitnes)}
+    counts = {k : counts[k] for k in sorted(counts, reverse=True)}
+    print(max(early_rep_fitness))
+    print(max(final_rep_fitnes))
+    #print(finalpop_trait2)
+    print(counts)
+    print("yee")
