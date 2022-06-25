@@ -1,3 +1,5 @@
+import numpy as np
+
 from model import *
 
 
@@ -30,9 +32,12 @@ class MultigeneFamilyModel(FamilyModel):
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         self.handler = FloatBinHandler(3, 1)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
-        self.datacollector = DataCollector(model_reporters={"altruistic fraction": lambda x: len(
-            [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count()})
-
+        self.datacollector = DataCollector(model_reporters={
+            "altruistic fraction": lambda x: len( [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
+            "mean rep": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]) / len([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
+            "max rep": lambda x: max([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
+            "min rep": lambda x: min([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()])
+        })
     def add_agents(self, N, r):
         for i in range(int(N * r)):
             trait2 = self.handler.float2bin(random.random())
@@ -47,7 +52,7 @@ class MultigeneFamilyModel(FamilyModel):
     def reproductive_fitness(self, agent):
         phenotype = self.handler.bin2float(agent.genotype[1])
         mean, sd = 0.6, 0.1
-        return np.exp(-(phenotype - mean)**2)
+        return np.exp(-((phenotype - mean)/sd)**2)
         # (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)  #  phenotype +0.000001
 
     def trait2_computation(self, parent1, parent2):
@@ -89,7 +94,7 @@ class MultigeneFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = MultigeneFamilyModel(N=1000, mr=0.001, r=0.5)
+    model = MultigeneFamilyModel(N=100, mr=0.001, r=0.5)
     # model = FamilyModel()
     print(len([a for a in model.schedule.agent_buffer()
           if a.genotype[0] == 1]) / model.schedule.get_agent_count())
@@ -102,10 +107,10 @@ if __name__ == "__main__":
     finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
     final_rep_fitnes = [model.reproductive_fitness(
         a) for a in model.schedule.agents]
-    counts = {f: final_rep_fitnes.count(f) for f in set(final_rep_fitnes)}
+    counts = {f: early_rep_fitness.count(f) for f in set(early_rep_fitness)}
     counts = {k: counts[k] for k in sorted(counts, reverse=True)}
     print(max(early_rep_fitness))
     print(max(final_rep_fitnes))
-    # print(finalpop_trait2)
+    print(finalpop_trait2)
     print(counts)
     print("yee<")

@@ -15,7 +15,7 @@ if __name__ == '__main__':
     results = batch_run(
         MultigeneFamilyModel,
         parameters=params,
-        iterations=10,
+        iterations=1,
         max_steps=500,
         number_processes=None,
         data_collection_period=1,
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     )
     results_df = pd.DataFrame(results)
     print(results_df)
-    results_df.to_csv("multi_result.csv")
+    results_df.to_csv("result.csv")
 
 
 #prova
