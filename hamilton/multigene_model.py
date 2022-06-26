@@ -40,9 +40,9 @@ class MultigeneFamilyModel(FamilyModel):
                 [x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
             "max rep": lambda x: max([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
             "min rep": lambda x: min([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-            "mean rep1": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]) / len(
+            "mean rep1": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
                 [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]),
-            "mean rep0": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]) / len(
+            "mean rep0": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
                 [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0])
 
         })
