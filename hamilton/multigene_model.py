@@ -1,6 +1,8 @@
 import numpy as np
 
 from model import *
+from scipy import stats
+from scipy.stats import norm
 
 
 class MultigeneFamilyAgent(FamilyAgent):
@@ -31,21 +33,23 @@ class MultigeneFamilyModel(FamilyModel):
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         self.mean = 0.5
+        self.mean1 = 0.2
+        self.mean2 = 0.7
         self.handler = FloatBinHandler(3, 1)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
-        self.datacollector = DataCollector(model_reporters={
-            "altruistic fraction": lambda x: len(
-                [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
-            "mean rep": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]) / len(
-                [x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-            "max rep": lambda x: max([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-            "min rep": lambda x: min([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-            "mean rep1": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
-                [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]),
-            "mean rep0": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
-                [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0])
+        # self.datacollector = DataCollector(model_reporters={
+        #     "altruistic fraction": lambda x: len(
+        #         [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
+        #     "mean rep": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]) / len(
+        #         [x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
+        #     "max rep": lambda x: max([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
+        #     "min rep": lambda x: min([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
+        #     "mean rep1": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
+        #         [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]),
+        #     "mean rep0": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
+        #         [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0])
 
-        })
+        # })
 
     def add_agents(self, N, r):
         for i in range(int(N * r)):
@@ -68,6 +72,30 @@ class MultigeneFamilyModel(FamilyModel):
         # TODO: multimodal fitness
         # TODO: changinng fitness
 
+    def reproductive_fitness_multimodal(self, agent):
+
+        if self.schedule.steps % 100 == 0:
+            print(self.schedule.steps)
+            n1, n2 = False, False
+            self.mean1 = random.random()
+            if self.mean1 - 0.2 > 0:
+                n1 = random.uniform(0, self.mean1 - 0.2)
+            else:
+                self.mean2 = random.uniform(self.mean1 + 0.2, 1)
+
+            if self.mean1 + 0.2 < 1:
+                n2 = random.uniform(self.mean1 + 0.2, 1)
+            else:
+                self.mean2 = random.uniform(self.mean1 - 0.2, 1)
+
+            if n1 and n2:
+                self.mean2 = random.choice([n1, n2])
+
+        phenotype = self.handler.bin2float(agent.genotype[1])
+        sd = 0.1
+        print(self.mean1, self.mean2)
+        return max(np.exp(-((phenotype - self.mean1) / sd) ** 2), np.exp(-((phenotype - self.mean2) / sd) ** 2))
+
     def trait2_computation(self, parent1, parent2):
         # crossover
         gene_offspring = ''
@@ -87,7 +115,7 @@ class MultigeneFamilyModel(FamilyModel):
         function to generate the new population from the parent individuals
         """
         total_rep_fitness = np.array(
-            [self.reproductive_fitness(a) for a in self.schedule.agents])
+            [self.reproductive_fitness_multimodal(a) for a in self.schedule.agents])
         total_rep_fitness /= total_rep_fitness.sum()
         mating_ind = np.random.choice(
             self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
@@ -107,24 +135,37 @@ class MultigeneFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = MultigeneFamilyModel(N=100, mr=0.001, r=0.5)
+    model = MultigeneFamilyModel(N=1000, mr=0.001, r=0.5)
     # model = FamilyModel()
-    print(len([a for a in model.schedule.agent_buffer()
-               if a.genotype[0] == 1]) / model.schedule.get_agent_count())
-    early_rep_fitness = [model.reproductive_fitness(
+
+    print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer()
+                                            if a.genotype[0] == 1]) / model.schedule.get_agent_count())
+
+    early_rep_fitness = [model.reproductive_fitness_multimodal(
         a) for a in model.schedule.agents]
+    print(model.mean1, model.mean2)
     for i in range(499):
         model.step()
-    print(len([a for a in model.schedule.agent_buffer()
-               if a.genotype[0] == 1]) / model.schedule.get_agent_count())
-    finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
-    final_rep_fitnes = [model.reproductive_fitness(
-        a) for a in model.schedule.agents]
-    counts = {f: early_rep_fitness.count(f) for f in set(early_rep_fitness)}
+
+    print(model.mean1, model.mean2)
+    # print("\ngen1\tgen2\tfitness")
+
+    # for a in model.schedule.agents:
+    #     print(a.genotype[0], "\t", model.handler.bin2float(a.genotype[1]),
+    #           "\t", model.reproductive_fitness_multimodal(a))
+
+    # finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
+    final_rep_fitness = [model.handler.bin2float(
+        a.genotype[1]) for a in model.schedule.agent_buffer()]
+
+    counts = {f: final_rep_fitness.count(f) for f in set(final_rep_fitness)}
     counts = {k: counts[k] for k in sorted(counts, reverse=True)}
-    print(max(early_rep_fitness))
-    print(max(final_rep_fitnes))
-    print([model.handler.bin2float(t) for t in finalpop_trait2])
     print(counts)
-    print(model.mean)
+    # print(max(early_rep_fitness))
+    # print(max(final_rep_fitness))
+
+    # print([model.handler.bin2float(t) for t in finalpop_trait2])
+
+    # print(model.mean)
+
     print("yee<")
