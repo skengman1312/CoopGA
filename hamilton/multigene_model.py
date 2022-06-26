@@ -1,8 +1,6 @@
+import random
 import numpy as np
-
 from model import *
-from scipy import stats
-from scipy.stats import norm
 
 
 class MultigeneFamilyAgent(FamilyAgent):
@@ -37,19 +35,19 @@ class MultigeneFamilyModel(FamilyModel):
         self.mean2 = 0.7
         self.handler = FloatBinHandler(3, 1)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
-        # self.datacollector = DataCollector(model_reporters={
-        #     "altruistic fraction": lambda x: len(
-        #         [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
-        #     "mean rep": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]) / len(
-        #         [x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-        #     "max rep": lambda x: max([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-        #     "min rep": lambda x: min([x.reproductive_fitness(a) for a in x.schedule.agent_buffer()]),
-        #     "mean rep1": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
-        #         [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]),
-        #     "mean rep0": lambda x: sum([x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
-        #         [x.reproductive_fitness(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0])
+        self.datacollector = DataCollector(model_reporters={
+            "altruistic fraction": lambda x: len(
+                [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
+            "mean rep": lambda x: sum([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]) / len(
+                [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]),
+            "max rep": lambda x: max([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]),
+            "min rep": lambda x: min([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]),
+            "mean rep1": lambda x: sum([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
+                [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]),
+            "mean rep0": lambda x: sum([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
+                [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0])
 
-        # })
+        })
 
     def add_agents(self, N, r):
         for i in range(int(N * r)):
@@ -72,28 +70,36 @@ class MultigeneFamilyModel(FamilyModel):
         # TODO: changing fitness with proper timestep
 
     def reproductive_fitness_multimodal(self, agent):
-
-        if self.schedule.steps % 100 == 0:
-            print(self.schedule.steps)
-            n1, n2 = False, False
-            self.mean1 = random.random()
-            if self.mean1 - 0.2 > 0:
-                n1 = random.uniform(0, self.mean1 - 0.2)
-            else:
-                self.mean2 = random.uniform(self.mean1 + 0.2, 1)
-
-            if self.mean1 + 0.2 < 1:
-                n2 = random.uniform(self.mean1 + 0.2, 1)
-            else:
-                self.mean2 = random.uniform(self.mean1 - 0.2, 1)
-
-            if n1 and n2:
-                self.mean2 = random.choice([n1, n2])
+        #
+        # if self.schedule.steps % 100 == 0:
+        #     n1, n2 = False, False
+        #     self.mean1 = random.random()
+        #     if self.mean1 - 0.2 > 0:
+        #         n1 = random.uniform(0, self.mean1 - 0.2)
+        #     else:
+        #         self.mean2 = random.uniform(self.mean1 + 0.2, 1)
+        #
+        #     if self.mean1 + 0.2 < 1:
+        #         n2 = random.uniform(self.mean1 + 0.2, 1)
+        #     else:
+        #         self.mean2 = random.uniform(self.mean1 - 0.2, 1)
+        #
+        #     if n1 and n2:
+        #         self.mean2 = random.choice([n1, n2])
 
         phenotype = self.handler.bin2float(agent.genotype[1])
         sd = 0.1
-        print(self.mean1, self.mean2)
-        return max(np.exp(-((phenotype - self.mean1) / sd) ** 2), np.exp(-((phenotype - self.mean2) / sd) ** 2))
+        return max(np.exp(-((phenotype - self.mean[0]) / sd) ** 2), np.exp(-((phenotype - self.mean[1]) / sd) ** 2))
+
+    def update_fitness(self):
+        m1 = random.random()
+        if m1 < 0.2:
+            m2 = random.uniform(m1 + 0.2, 1)
+        elif m1 > 0.2:
+            m2 = random.uniform(0, m1 - 0.2)
+        else:
+            m2 = random.choice([random.uniform(m1 + 0.2, 1), random.uniform(0, m1 - 0.2)])
+        return [m1, m2]
 
     def trait2_computation(self, parent1, parent2):
         # crossover
@@ -113,6 +119,8 @@ class MultigeneFamilyModel(FamilyModel):
         """
         function to generate the new population from the parent individuals
         """
+        if self.schedule.steps % 100 == 0:
+            self.mean = self.update_fitness()
         total_rep_fitness = np.array(
             [self.reproductive_fitness_multimodal(a) for a in self.schedule.agents])
         total_rep_fitness /= total_rep_fitness.sum()
@@ -137,31 +145,32 @@ if __name__ == "__main__":
     model = MultigeneFamilyModel(N=1000, mr=0.001, r=0.5)
     # model = FamilyModel()
 
-    print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer()
-                                            if a.genotype[0] == 1]) / model.schedule.get_agent_count())
-
-    early_rep_fitness = [model.reproductive_fitness_multimodal(
-        a) for a in model.schedule.agents]
-    print(model.mean1, model.mean2)
-    for i in range(499):
+    # print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer()
+    #                                         if a.genotype[0] == 1]) / model.schedule.get_agent_count())
+    #
+    # early_rep_fitness = [model.reproductive_fitness_multimodal(
+    #     a) for a in model.schedule.agents]
+    # print(model.mean1, model.mean2)
+    for i in range(100):
         model.step()
+    #
+    # print(model.mean1, model.mean2)
+    print(model.mean)
+    print("\ngen1\tgen2\tfitness")
 
-    print(model.mean1, model.mean2)
-    # print("\ngen1\tgen2\tfitness")
+    for a in model.schedule.agents:
+        print(a.genotype[0], "\t", model.handler.bin2float(a.genotype[1]),
+              "\t", model.reproductive_fitness_multimodal(a))
 
-    # for a in model.schedule.agents:
-    #     print(a.genotype[0], "\t", model.handler.bin2float(a.genotype[1]),
-    #           "\t", model.reproductive_fitness_multimodal(a))
-
-    # finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
+    finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
     final_rep_fitness = [model.handler.bin2float(
-        a.genotype[1]) for a in model.schedule.agent_buffer()]
-
+         a.genotype[1]) for a in model.schedule.agent_buffer()]
+    #
     counts = {f: final_rep_fitness.count(f) for f in set(final_rep_fitness)}
     counts = {k: counts[k] for k in sorted(counts, reverse=True)}
     print(counts)
-    # print(max(early_rep_fitness))
-    # print(max(final_rep_fitness))
+    #print(max(early_rep_fitness))
+    print(max(final_rep_fitness))
 
     # print([model.handler.bin2float(t) for t in finalpop_trait2])
 
