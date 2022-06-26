@@ -69,8 +69,7 @@ class MultigeneFamilyModel(FamilyModel):
         sd = 0.1
         return np.exp(-((phenotype - self.mean) / sd) ** 2)
         # (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)  #  phenotype +0.000001
-        # TODO: multimodal fitness
-        # TODO: changinng fitness
+        # TODO: changing fitness with proper timestep
 
     def reproductive_fitness_multimodal(self, agent):
 
