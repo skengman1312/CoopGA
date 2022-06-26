@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import *
 import numpy as np
 
-data = pd.read_csv("result.csv", index_col=0)
-multidata = pd.read_csv("multi_result.csv", index_col=0)
+data = pd.read_csv("data/result.csv", index_col=0)
+multidata = pd.read_csv("data/multi_result.csv", index_col=0)
 print(multidata)
 
 
@@ -46,7 +46,7 @@ def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
     plt.title(f"{maintitle}\n{subtitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
-    plt.savefig(filename)
+    plt.savefig(f"./data/{filename}")
     plt.show()
 
 def get_param_ID(data, params=["N", "r", "dr", "mr"]):
@@ -96,7 +96,7 @@ def plot_rep_fitness(data, s = 100, title = "", params=["N", "r", "dr", "mr"]):
     for spine in plt.gca().spines.values():
         spine.set_visible(False)
     plt.tight_layout()
-    plt.savefig(filename)
+    plt.savefig(f"./data/{filename}")
     plt.show()
 
 
@@ -159,7 +159,7 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
     plt.title(f"{maintitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
-    plt.savefig(filename)
+    plt.savefig(f"./data/{filename}")
 
     plt.show()
 
