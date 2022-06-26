@@ -31,8 +31,6 @@ class MultigeneFamilyModel(FamilyModel):
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         self.mean = 0.5
-        self.mean1 = 0.2
-        self.mean2 = 0.7
         self.handler = FloatBinHandler(3, 1)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
         self.datacollector = DataCollector(model_reporters={
