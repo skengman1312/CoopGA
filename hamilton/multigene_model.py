@@ -54,6 +54,8 @@ class MultigeneFamilyModel(FamilyModel):
         mean, sd = 0.6, 0.1
         return np.exp(-((phenotype - mean)/sd)**2)
         # (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)  #  phenotype +0.000001
+        # TODO: multimodal fitness
+        # TODO: changinng fitness
 
     def trait2_computation(self, parent1, parent2):
        # crossover
