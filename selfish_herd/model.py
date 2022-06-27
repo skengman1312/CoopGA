@@ -74,16 +74,16 @@ class PredatorAgent(Agent):
 
     def hunt(self, nf):
 
-        #if dist(self.pos, nf) < 5:
-        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=4)
+        if dist(self.pos, nf) < 5:
+            possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=4)
         # all the cells at dist = 1
 
-        new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
+            new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
         #self.hp -= 0.5 * dist(self.pos, nf)
-        self.model.grid.move_agent(self, new_position)
+            self.model.grid.move_agent(self, new_position)
 
-        #else:
-        #    return
+        else:
+            return
 
 
 # TODO instead of fear, implement herds according to genotype
@@ -112,50 +112,45 @@ class PreyAgent(Agent):
     def move(self):
         # TODO: use numpy for the fector representation
         """
-        function to move creatures and predators
+        function to move creatures
+        if a predator:
+            - move toward the nearest creature (vector weighted by the genotype)
+            - if no creature, move in the opposite direction wrt the predator
+        if no predator, random move
         """
         possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
                                                           include_center=False)  # all the cells at dist = 1
         fear_vect = self.panic()
+        print("fear vector:", fear_vect)
+        print("self.position:", self.pos)
 
         np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
         npredator = [x.pos for x in np if x.type == "predator"]
         nprey = [x.pos for x in np if x.type == "creature"]
 
         mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
+        #print("move_vectorize", mov_vectorize)
         move_vect = None
 
         if fear_vect:
-            move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect  # sum prod fear + move
-            vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
-            new_position = min(possible_steps, key=lambda x: sqrt(
-                ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
-        else:
-            new_position = self.random.choice(possible_steps)
-
-        self.model.grid.move_agent(self, new_position)
-
-        """if len(nb) > 0 or fear_vect:
-            mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-            move_vect = None
-            if len(nb) > 0:
-                nearest_food = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-                move_vect = mov_vectorize(self.pos, nearest_food)
-            if fear_vect:
-                move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect  # sum prod fear + move
-
-            # print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
-
-            if self.type == "predator":
-                self.hunt(nearest_food)
-                return
+            if nprey:
+                print(nprey)
+                nearest_prey = min(nprey, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+                print("nearest prey:", nearest_prey)
+                move_vect = mov_vectorize(nearest_prey, move_vect) if move_vect else nearest_prey  # sum prod nearest prey + move
+                vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
+                new_position = min(possible_steps, key=lambda x: sqrt(
+                    ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
             else:
+                move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect  # sum prod fear + move
                 vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
                 new_position = min(possible_steps, key=lambda x: sqrt(
                     ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
         else:
             new_position = self.random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)"""
+
+        print(new_position)
+        self.model.grid.move_agent(self, new_position)
 
     def panic(self):
 
@@ -172,6 +167,7 @@ class PreyAgent(Agent):
             #find the nearest predator using the euclidean distance
             #key function specify how to compute the minimum (x is each element in np list)
             nearest_predator = min(npredator, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+            print("nearest predator:", nearest_predator)
 
             # TODO add weight for genotype
             return mov_vectorize(self.pos, [-x for x in nearest_predator])
@@ -272,8 +268,9 @@ class HerdModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-        self.datacollector.collect(self)
+        #self.datacollector.collect(self)
         self.schedule.step()
+        self.datacollector.collect(self)
         """ for a in self.schedule.agents:
             if a.hp <= 0:
                 self.grid.remove_agent(a)
