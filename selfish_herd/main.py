@@ -55,7 +55,7 @@ if __name__ == '__main__':
                            {"Label": "Number of predators", "Color": "Red"}],
                           data_collector_name='datacollector', canvas_height=100, canvas_width=200)
 
-    server = ModularServer(RunningFoodModel,
+    server = ModularServer(HerdModel,
                           [grid, chart_0, chart_1],
                           "Food Model",
                           {"ncreatures": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1),
