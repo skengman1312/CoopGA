@@ -21,13 +21,14 @@ def predator_food_stat(model):
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    def __init__(self, unique_id, model, agent_type="predator", sight=None):
+    def __init__(self, unique_id, model, type="predator", sight=None):
         """
         Food Agent init function
         Type can be either food, creature or predator
         """
         super().__init__(unique_id, model)
-        self.agent_type = agent_type
+        self.hp = 5
+        self.type = type
         self.sight = sight
 
     def step(self):
@@ -75,13 +76,13 @@ class PreyAgent(Agent):
     """
     Agent model with fear running from pred
     """
-    def __init__(self, unique_id, model, genotype : list, agent_type = "prey", sight = None):
+    def __init__(self, unique_id, model, genotype : list, type = "creature", sight = None):
         """
         Food Agent init function
         Type can be either food, creature or predator
         """
         super().__init__(unique_id, model)
-        self.agent_type = agent_type
+        self.type = type
         self.sight = sight
         self.genotype = genotype
 
@@ -182,9 +183,9 @@ class HerdModel(Model):
         self.datacollector = DataCollector(model_reporters={
             "Mean predator food": predator_food_stat,
             "Number of creatures": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.agent_type == "creature"]),
+                [agent for agent in x.schedule.agents if agent.type == "creature"]),
             "Number of predators": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.agent_type == "predator"])},
+                [agent for agent in x.schedule.agents if agent.type == "predator"])},
             agent_reporters={"Health": "hp"})
 
         # Create agents
@@ -192,7 +193,7 @@ class HerdModel(Model):
         # -1 encodes for "run", 1 encodes for "form a herd"
         for i in range(self.num_agents):
             genotype = [round(random.uniform(-1, 1), 2)]
-            a = PreyAgent(i, self, genotype=genotype, agent_type="creature", sight=sight)
+            a = PreyAgent(i, self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -200,7 +201,7 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(self.num_agents, self.num_agents + self.num_pred):
-            a = PredatorAgent(i, self, agent_type="predator", sight=sight)
+            a = PredatorAgent(i, self, type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -216,7 +217,7 @@ class HerdModel(Model):
         """
 
         # Prey reproduction
-        prey_agents = random.sample([agent for agent in self.schedule.agents if agent.agent_type == "creature"],
+        prey_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "creature"],
                                     k=self.schedule.get_agent_count())
 
         for i in range(0, len(prey_agents) - 1, 2):
@@ -228,7 +229,7 @@ class HerdModel(Model):
                 gen1 = []
                 if random.random() < self.mr:  # random mutation
                     gen1 = round(random.uniform(-1, 1), 2)
-                child = PreyAgent(self.next_id(), self, genotype=gen1, agent_type="creature", sight=self.sight)
+                child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
                 self.schedule.add(child)
 
             self.schedule.remove(agent1)
@@ -236,7 +237,7 @@ class HerdModel(Model):
 
         # Predator reproduction
         # non mi è chiaro se facciamo riprodurre anche loro oppure no ma in caso il codice è pronto
-        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.agent_type == "predator"],
+        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "predator"],
                                     k=self.schedule.get_agent_count())
 
         for i in range(0, len(pred_agents) - 1, 2):
@@ -245,7 +246,7 @@ class HerdModel(Model):
             n_child = random.randint(2, max_child)
 
             for j in range(n_child):
-                child = PredatorAgent(self.next_id(), self, agent_type="predator", sight=self.sight)
+                child = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight)
                 self.schedule.add(child)
 
             self.schedule.remove(agent1)
@@ -255,10 +256,10 @@ class HerdModel(Model):
         """Advance the model by one step."""
         self.datacollector.collect(self)
         self.schedule.step()
-        for a in self.schedule.agents:
+        """ for a in self.schedule.agents:
             if a.hp <= 0:
                 self.grid.remove_agent(a)
-                self.schedule.remove(a)
-        if not [agent for agent in self.schedule.agents if agent.agent_type == "creature"]:
+                self.schedule.remove(a)"""
+        if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
             self.running = False
 
