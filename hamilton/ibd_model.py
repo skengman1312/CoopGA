@@ -1,5 +1,10 @@
 from model import *
 import networkx as nx
+from nx_script import *
+
+
+def tree_id(a):  # to be deleted
+    pass
 
 
 class IBDFamilyAgent(FamilyAgent):
@@ -10,6 +15,29 @@ class IBDFamilyAgent(FamilyAgent):
         A = actor, R_i = ith recipient
         :return:
         """
+
+        A_index = self.model.active.index(self.unique_id)
+        A_room = self.model.room[A_index]
+
+        # calculating the benefit
+        # suppose tree_id( ) is a function that return the id of the agent in the graph
+        b = 0
+        for i in A_room:
+            if A_room[i].unique_id != self.unique_id:
+                b += ibd_coeff(self.model.tree, tree_id(self),
+                               tree_id(A_room[i]))
+
+        # self.model.tree
+        if self.genotype:
+            if b > 1:
+                if random.random() > self.model.dr:
+                    return
+                else:
+                    self.model.schedule.remove(self)
+        else:
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
+            ) if a.family == self.family and a.unique_id != self.unique_id]
+
         pass
 
 
