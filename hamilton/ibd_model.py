@@ -75,4 +75,23 @@ class IBDFamilyModel(FamilyModel):
         #add "rooms" "active" as model variable
         :return:
         """
+
+        # suppose 500 parents --> 250 couples --> 2500 offspring (5 per tree)
+
+        danger_number = self.N // 4
+
+        # it has to be generalized for n child, now takes as granted 4 childs
+        ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
+
+        danger_fam = random.sample(ufid, danger_number)
+
+        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f]
+                 for f in danger_fam]
+        active = [random.choice(r).unique_id for r in rooms]
+
+        self.schedule.step(active)
+
+        self.reproduce()
+        self.datacollector.collect(self)
+
         pass
