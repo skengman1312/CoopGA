@@ -1,12 +1,9 @@
 import pandas
-
+import random
 from model import *
 import networkx as nx
 from nx_script import *
 from nx_script import IBDFamilyTree
-
-def tree_id(a):  # to be deleted
-    pass
 
 
 class IBDFamilyAgent(FamilyAgent):
@@ -26,9 +23,10 @@ class IBDFamilyAgent(FamilyAgent):
 
         # self.model.tree
         if self.genotype:
-            b = sum([self.model.tree.ibd_coeff(pre + self.unique_id, pre + i.unique_id) for i in A_room.remove(self)])
+            b = sum([self.model.tree.ibd_coeff(pre + self.unique_id,
+                    pre + i.unique_id) for i in A_room.remove(self)])
 
-            #it has to be tested yet
+            # it has to be tested yet
             # for i in A_room:
             #     if i.unique_id != self.unique_id:
             #         b += self.model.tree.ibd_coeff(self.model.tree,
@@ -46,7 +44,7 @@ class IBDFamilyAgent(FamilyAgent):
 class IBDFamilyModel(FamilyModel):
     pass
 
-    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
+    def __init__(self, N=50, r=0.5, dr=0.95, mr=0.001):
         """
         add graph to attributes
         """
@@ -76,15 +74,15 @@ class IBDFamilyModel(FamilyModel):
                         for i in range(len(mating_ind) // 2)]
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id,
-                   "parents id" : [pa.unique_id for pa in p]} for p in
+                   "parents id": [pa.unique_id for pa in p]} for p in
                   mating_pairs for i in range(10)]
 
         self.tree.remove_generation(self.schedule.steps - 3)
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
         for i in range(len(newgen)):
-            self.schedule.add(IBDFamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"]))
+            self.schedule.add(IBDFamilyAgent(
+                i, self, newgen[i]["genotype"], newgen[i]["family"]))
             self.tree.add_child(newgen[i], i)
-
 
     def step(self) -> None:
         """
@@ -93,26 +91,36 @@ class IBDFamilyModel(FamilyModel):
         :return:
         """
 
-        # suppose 500 parents --> 250 couples --> 2500 offspring (5 per tree)
+        # suppose 50 parents --> 25 couples --> 250 offspring (5 per tree)
+        # since we have 50 tree (250/5) all the trees can be dangerous bc
+        # even in the worst case scenario at least 50 individuals survive
 
-        danger_number = self.N // 4
+        all_ids = [a.unique_id for a in self.schedule.agent_buffer()]
+        random.shuffle(all_ids)
 
-        # it has to be generalized for n child, now takes as granted 4 childs
-        ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
+        self.rooms = []
+        for x in range(0, len(all_ids), 5):
+            for a_r in all_ids[x:x + 5]:
+                room = []
+                for a in self.schedule.agent_buffer():
+                    if a.unique_id == a_r:
+                        room.append(a)
+                self.rooms.append(room)
 
-        danger_fam = random.sample(ufid, danger_number)
+        # self.rooms = [[a.unique_id == a_r]
+        #               for x in range(0, len(all_ids), 5)
+        #               for a_r in all_ids[x:x + 5] for a in self.schedule.agent_buffer()]
 
-        rooms = [[x for x in self.schedule.agent_buffer() if x.family == f]
-                 for f in danger_fam]
-        active = [random.choice(r).unique_id for r in rooms]
+        print(self.rooms)
+        self.active = [random.choice(r).unique_id for r in self.rooms]
 
-        self.schedule.step(active)
+        self.schedule.step(self.active)
 
         self.reproduce()
-        self.datacollector.collect(self)
-
-        pass
+        #   self.datacollector.collect(self)
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N = 10)
+    model = IBDFamilyModel(N=50, mr=0.001, r=0.5)
+
+    model.step()
