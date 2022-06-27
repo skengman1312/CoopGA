@@ -58,10 +58,12 @@ if __name__ == '__main__':
     server = ModularServer(HerdModel,
                           [grid, chart_0, chart_1],
                           "HerdModel",
-                          {"n_creatures": UserSettableParameter("slider", "Creature number", 5, 0, 200, 1),
-                           "n_pred": UserSettableParameter("slider", "Predator number", 5, 0, 200, 1),
-                           "sight" : UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
+                          {"n_creatures": UserSettableParameter("slider", "Creature number", 50, 0, 200, 1),
+                           "n_pred": UserSettableParameter("slider", "Predator number", 50, 0, 200, 1),
+                           "sight": UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
+                           "mr": UserSettableParameter("slider", "Mutation rate", 0.01, 0, 1, 0.01),
                            "width": 100, "height": 100})
+
     server.port = 8521  # The default
     server.launch()
 

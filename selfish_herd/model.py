@@ -104,15 +104,16 @@ class PreyAgent(Agent):
     """
     Agent model with fear running from pred
     """
-    def __init__(self, unique_id, model, genotype : list, type = "creature", sight = None):
+    def __init__(self, unique_id, model, genotype: list, type ="creature", sight=None, ):
         """
         Food Agent init function
         Type can be either food, creature or predator
         """
         super().__init__(unique_id, model)
+        self.genotype = genotype
         self.type = type
         self.sight = sight
-        self.genotype = genotype
+
 
 
     def step(self):
@@ -195,7 +196,7 @@ class HerdModel(Model):
 
     # TODO non so se avere due tipi di agenti (prey e predator) nello stesso scheduler possa creare problemi
 
-    def __init__(self, n_creatures: int, n_pred: int, sight: int, width: int, height: int, mr=0.001):
+    def __init__(self, n_creatures: int, n_pred: int, sight: int, mr: int, width: int, height: int):
         """
         n_creatures: number of creatures
         n_pred: number of predators
@@ -203,8 +204,8 @@ class HerdModel(Model):
         """
         self.num_agents = n_creatures
         self.num_pred = n_pred
-        self.mr = mr
         self.sight = sight
+        self.mr = mr
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
 
