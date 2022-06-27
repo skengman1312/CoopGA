@@ -69,14 +69,13 @@ class PredatorAgent(Agent):
             self.hp -= 0.5 * dist(self.pos, nf)
             self.model.grid.move_agent(self, new_position)
 
-
 # TODO instead of fear, implement herds according to genotype
 
 class PreyAgent(Agent):
     """
     Agent model with fear running from pred
     """
-    def __init__(self, unique_id, model, agent_type = "prey", sight = None):
+    def __init__(self, unique_id, model, genotype : list, agent_type = "prey", sight = None):
         """
         Food Agent init function
         Type can be either food, creature or predator
@@ -84,6 +83,8 @@ class PreyAgent(Agent):
         super().__init__(unique_id, model)
         self.agent_type = agent_type
         self.sight = sight
+        self.genotype = genotype
+
 
     def step(self):
         # The agent's step will go here.
@@ -245,68 +246,3 @@ class FoodModel(Model):
         if not [agent for agent in self.schedule.agents if agent.agent_type == "creature"]:
             self.running = False
 
-
-class CustomFoodModel(FoodModel):
-    """
-    Per testare nuove cose direi di creare nuove classi figlie e modificare quelle; aggiunginedo e
-    modificando metodi quando serve.
-    Può essere comod per integrare gli algo genetici sulla base di una classse già funzionante.
-
-    """
-    pass
-
-
-class CustomFoodAgent(PreyAgent):
-    """
-     Per testare nuove cose direi di creare nuove classi figlie e modificare quelle; aggiunginedo e
-     modificando metodi quando serve.
-     Può essere comod per integrare gli algo genetici sulla base di una classse già funzionante.
-
-     """
-    pass
-
-
-
-class RunningFoodModel(FoodModel):
-    """
-    Model to test running agent with fear
-
-    """
-
-    def __init__(self, ncreatures: int, npred: int, sight: int, width: int, height: int):
-        """
-        ncreatures: number of creatures
-        npred: number of predators
-        sight: sight of creatures and predators
-        """
-        self.num_agents = ncreatures
-        self.num_pred = npred
-        self.schedule = RandomActivation(self)
-        self.grid = MultiGrid(width, height, True)
-        self.running = True
-
-        self.datacollector = DataCollector(model_reporters={"Mean predator food": predator_food_stat,
-                                                            "Number of creatures": lambda x: len(
-                                                                [agent for agent in x.schedule.agents if
-                                                                 agent.type == "creature"]),
-                                                            "Number of predators": lambda x: len(
-                                                                [agent for agent in x.schedule.agents if
-                                                                 agent.type == "predator"])},
-                                           agent_reporters={"Health": "hp"})
-        # Create agents
-        for i in range(self.num_agents):
-            genotype = [round(random.uniform(-1, 1), 2)]
-            a = PreyAgent(i, self, genotype=genotype, agent_type="creature", sight=sight)
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-
-        for i in range(self.num_agents, self.num_agents + self.num_pred):
-            a = PreyAgent(i, self, genotype=[], agent_type="predator", sight=sight)
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
