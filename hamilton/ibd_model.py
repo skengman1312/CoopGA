@@ -1,7 +1,9 @@
+import pandas
+
 from model import *
 import networkx as nx
 from nx_script import *
-
+from nx_script import IDBFamilyTree
 
 def tree_id(a):  # to be deleted
     pass
@@ -46,7 +48,7 @@ class IBDFamilyModel(FamilyModel):
         """
         add graph to attributes
         """
-        self.tree = nx.DiGraph()
+        self.tree = IDBFamilyTree(nx.DiGraph(), self)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
         # genalogy of the simulation represented as a tree DAG
         # TODO: adapt the datacollector module
@@ -62,12 +64,16 @@ class IBDFamilyModel(FamilyModel):
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
         mutate = lambda x: x if random.random() > self.mr else 1 - x
-        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id} for p in
+        newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id,
+                   "parents id" : [pa.unique_id for pa in pa]} for p in
                   mating_pairs for i in range(10)]
 
+        self.tree.remove_generation(self.schedule.steps - 3)
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
-        [self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in
-         range(len(newgen))]
+        for i in range(len(newgen)):
+            self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"]))
+            self.tree.add_child(newgen[i], i)
+
 
     def step(self) -> None:
         """
