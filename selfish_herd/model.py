@@ -89,10 +89,7 @@ class PreyAgent(Agent):
     def step(self):
         # The agent's step will go here.
         # For demonstration purposes we will print the agent's unique_id
-        # if self.type != "food":
         self.move()
-        # self.eat()
-        # self.hp -= 0.2 + 0.1 * self.hp
 
     def move(self):
         # TODO: use numpy for the fector representation
@@ -103,7 +100,24 @@ class PreyAgent(Agent):
                                                           include_center=False)  # all the cells at dist = 1
         fear_vect = self.panic()
 
-        if len(nb) > 0 or fear_vect:
+        np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
+        npredator = [x.pos for x in np if x.type == "predator"]
+        nprey = [x.pos for x in np if x.type == "creature"]
+
+        mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
+        move_vect = None
+
+        if fear_vect:
+            move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect  # sum prod fear + move
+            vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
+            new_position = min(possible_steps, key=lambda x: sqrt(
+                ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+        else:
+            new_position = self.random.choice(possible_steps)
+
+        self.model.grid.move_agent(self, new_position)
+
+        """if len(nb) > 0 or fear_vect:
             mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
             move_vect = None
             if len(nb) > 0:
@@ -123,7 +137,7 @@ class PreyAgent(Agent):
                     ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
         else:
             new_position = self.random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)
+        self.model.grid.move_agent(self, new_position)"""
 
     def panic(self):
 
@@ -131,20 +145,22 @@ class PreyAgent(Agent):
 
         #retrieve positions of all predators
         np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        np = [x.pos for x in np if x.type == "predator"]
+        npredator = [x.pos for x in np if x.type == "predator"]
+        nprey = [x.pos for x in np if x.type == "creature"]
 
         #if there is at least one predator (np = True if len(np)>0)
-        if np:
+        if npredator:
             #find the nearest predator using the euclidean distance
             #key function specify how to compute the minimum (x is each element in np list)
             nearest_predator = min(np, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
 
+            # TODO add weight for genotype
             return mov_vectorize(self.pos, [-x for x in nearest_predator])
-        else:
-            return None
+
+        return None
 
 
-class FoodModel(Model):
+class HerdModel(Model):
     """A model with some number of food, creatures and predators."""
 
     # TODO non so se avere due tipi di agenti (prey e predator) nello stesso scheduler possa creare problemi
