@@ -58,17 +58,31 @@ class PredatorAgent(Agent):
             new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
-    def hunt(self, nf):
+    def hunt(self):
         """
         "hunting" function to code for the behaviour of the predators
         nf: nearest creature
         """
-        if dist(self.pos, nf) < 5:
-            possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False,
-                                                              radius=4)  # all the cells at dist = 1
-            new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
-            self.hp -= 0.5 * dist(self.pos, nf)
-            self.model.grid.move_agent(self, new_position)
+        """
+        function to move creatures and predators
+        """
+
+        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
+        nb = [x.pos for x in nb if x.type == "creature"]  # food ad distance r = sight, we may optimize it
+
+        if len(nb) > 0:
+            nf = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
+
+            if dist(self.pos, nf) < 5:
+                possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False,
+                                                                  radius=4)  # all the cells at dist = 1
+                new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
+                self.hp -= 0.5 * dist(self.pos, nf)
+                self.model.grid.move_agent(self, new_position)
+
+        else:
+            return
+
 
 # TODO instead of fear, implement herds according to genotype
 
@@ -149,6 +163,7 @@ class PreyAgent(Agent):
         npredator = [x.pos for x in np if x.type == "predator"]
         nprey = [x.pos for x in np if x.type == "creature"]
 
+
         #if there is at least one predator (np = True if len(np)>0)
         if npredator:
             #find the nearest predator using the euclidean distance
@@ -185,8 +200,8 @@ class HerdModel(Model):
             "Number of creatures": lambda x: len(
                 [agent for agent in x.schedule.agents if agent.type == "creature"]),
             "Number of predators": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.type == "predator"])},
-            agent_reporters={"Health": "hp"})
+                [agent for agent in x.schedule.agents if agent.type == "predator"])})#,
+            #agent_reporters={"Health": "hp"})
 
         # Create agents
         # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
