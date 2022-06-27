@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from networkx.drawing.nx_pydot import graphviz_layout
 
 
-class IDBFamilyTree:
+class IBDFamilyTree:
 
     def __init__(self, G: nx.DiGraph, model):
         """
@@ -42,7 +42,7 @@ if __name__ == "__main__":
            ["1#0", "2#0"], ["1#0", "2#1"], [
                "1#0", "2#2"], ["1#1", "2#3"], ["1#1", "2#4"]
            ]
-    tree = IDBFamilyTree(nx.DiGraph(fam))
+    tree = IBDFamilyTree(nx.DiGraph(fam))
     # nx.draw(g)
     # nx.draw_networkx_nodes(g, pos)
     c = {}

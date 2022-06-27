@@ -3,7 +3,7 @@ import pandas
 from model import *
 import networkx as nx
 from nx_script import *
-from nx_script import IDBFamilyTree
+from nx_script import IBDFamilyTree
 
 def tree_id(a):  # to be deleted
     pass
@@ -48,10 +48,19 @@ class IBDFamilyModel(FamilyModel):
         """
         add graph to attributes
         """
-        self.tree = IDBFamilyTree(nx.DiGraph(), self)
+        self.tree = IBDFamilyTree(nx.DiGraph(), self)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
         # genalogy of the simulation represented as a tree DAG
         # TODO: adapt the datacollector module
+
+    def add_agents(self, N, r):
+        for i in range(int(N * r)):
+            agent = IBDFamilyAgent(i, self, 1, i)
+            self.schedule.add(agent)
+
+        for i in range(int(N * r), N):
+            agent = IBDFamilyAgent(i, self, 0, i)
+            self.schedule.add(agent)
 
     def reproduce(self):
         """
@@ -71,7 +80,7 @@ class IBDFamilyModel(FamilyModel):
         self.tree.remove_generation(self.schedule.steps - 3)
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
         for i in range(len(newgen)):
-            self.schedule.add(FamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"]))
+            self.schedule.add(IBDFamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"]))
             self.tree.add_child(newgen[i], i)
 
 
