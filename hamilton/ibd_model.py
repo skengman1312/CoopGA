@@ -26,11 +26,13 @@ class IBDFamilyAgent(FamilyAgent):
 
         # self.model.tree
         if self.genotype:
-            b = 0
-            for i in A_room:
-                if i.unique_id != self.unique_id:
-                    b += self.model.tree.ibd_coeff(self.model.tree,
-                                                   pre + self.unique_id, pre + i.unique_id)
+            b = sum([self.model.tree.ibd_coeff(pre + self.unique_id, pre + i.unique_id) for i in A_room.remove(self)])
+
+            #it has to be tested yet
+            # for i in A_room:
+            #     if i.unique_id != self.unique_id:
+            #         b += self.model.tree.ibd_coeff(self.model.tree,
+            #                                        pre + self.unique_id, pre + i.unique_id)
             if b > 1:
                 if random.random() > self.model.dr:
                     return
@@ -110,3 +112,7 @@ class IBDFamilyModel(FamilyModel):
         self.datacollector.collect(self)
 
         pass
+
+
+if __name__ == "__main__":
+    model = IBDFamilyModel(N = 10)
