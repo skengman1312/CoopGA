@@ -12,7 +12,8 @@ class IDBFamilyTree:
         ancestor = nx.algorithms.lowest_common_ancestor(self.G, n1, n2)
         if not ancestor:
             return 0
-        pl = nx.algorithms.shortest_path_length(self.G, source=ancestor, target=n1)
+        pl = nx.algorithms.shortest_path_length(
+            self.G, source=ancestor, target=n1)
         return 0.5 ** pl
 
     def remove_generation(self, gen_id):
@@ -22,10 +23,12 @@ class IDBFamilyTree:
 
 if __name__ == "__main__":
     fam = [[0, 10], [1, 10], [0, 11], [1, 11], [0, 12], [1, 12],
-           [13, 20], [13, 21], [10, 20], [10, 21], [12, 22], [11, 23], [14, 22], [15, 23]
+           [13, 20], [13, 21], [10, 20], [10, 21], [
+               12, 22], [11, 23], [14, 22], [15, 23]
            ]
     fam = [["0#0", "1#0"], ["0#0", "1#1"], ["0#0", "1#2"], ["0#1", "1#0"], ["0#1", "1#1"], ["0#1", "1#2"],
-           ["1#0", "2#0"], ["1#0", "2#1"], ["1#0", "2#2"], ["1#1", "2#3"], ["1#1", "2#4"]
+           ["1#0", "2#0"], ["1#0", "2#1"], [
+               "1#0", "2#2"], ["1#1", "2#3"], ["1#1", "2#4"]
            ]
     tree = IDBFamilyTree(nx.DiGraph(fam))
     # nx.draw(g)
