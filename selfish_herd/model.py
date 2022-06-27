@@ -21,7 +21,7 @@ def predator_food_stat(model):
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    def __init__(self, unique_id, model, type="predator", sight=None):
+    def __init__(self, unique_id, model, type="predator", sight=5):
         """
         Food Agent init function
         Type can be either food, creature or predator
@@ -35,7 +35,7 @@ class PredatorAgent(Agent):
         # The agent's step will go here.
         # For demonstration purposes we will print the agent's unique_id
         self.move()
-        self.hunt()
+        self.eat()
 
     def move(self):
         """
@@ -51,14 +51,28 @@ class PredatorAgent(Agent):
         # food ad distance r = sight, we may optimize it
 
         if len(nb) > 0:
-            nearest_food = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            self.hunt(nearest_food)
+            nearest_pray = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+            self.hunt(nearest_pray)
+            #self.model.schedule.remove(nearest_pray)
+            #self.grid.remove_agent(nearest_pray)
             return
         else:
             new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
-    def hunt(self):
+    def eat(self):
+        """
+        function to eat if there is something at hand
+        """
+        cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        for a in cellmates:
+            if a.type == "creature":
+                self.model.schedule.remove(a)
+                self.model.grid.remove_agent(a)
+                self.hp += 5
+                break
+
+    def hunt(self, nf):
         """
         "hunting" function to code for the behaviour of the predators
         nf: nearest creature
@@ -67,18 +81,18 @@ class PredatorAgent(Agent):
         function to move creatures and predators
         """
 
-        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
+        """        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
         nb = [x.pos for x in nb if x.type == "creature"]  # food ad distance r = sight, we may optimize it
 
         if len(nb) > 0:
-            nf = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
+            nf = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))"""
 
-            if dist(self.pos, nf) < 5:
-                possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False,
-                                                                  radius=4)  # all the cells at dist = 1
-                new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
-                self.hp -= 0.5 * dist(self.pos, nf)
-                self.model.grid.move_agent(self, new_position)
+        if dist(self.pos, nf) < 5:
+            possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False,
+                                                              radius=4)  # all the cells at dist = 1
+            new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
+            self.hp -= 0.5 * dist(self.pos, nf)
+            self.model.grid.move_agent(self, new_position)
 
         else:
             return
@@ -168,7 +182,7 @@ class PreyAgent(Agent):
         if npredator:
             #find the nearest predator using the euclidean distance
             #key function specify how to compute the minimum (x is each element in np list)
-            nearest_predator = min(np, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+            nearest_predator = min(npredator, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
 
             # TODO add weight for genotype
             return mov_vectorize(self.pos, [-x for x in nearest_predator])
