@@ -2,6 +2,7 @@ import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from mesa.space import Grid
 from mesa.datacollection import DataCollector
 from math import sqrt
 from mesa.time import BaseScheduler
@@ -121,7 +122,7 @@ class PreyAgent(Agent):
         all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
                                                           include_center=False)  # all the cells at dist = 1
 
-        possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empy(x)]
+        possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
         fear_vect = self.panic()
         print("fear vector:", fear_vect)
         print("self.position:", self.pos)
@@ -174,7 +175,10 @@ class PreyAgent(Agent):
                 #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
             vect_landing = [coord[0]-coord[1] for coord in zip(self.pos, move_vect)]
-            new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+            if possible_steps:
+                new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+            else:
+                new_position = self.pos
 
         else:
             new_position = self.pos
@@ -222,7 +226,8 @@ class HerdModel(Model):
         self.sight = sight
         self.mr = mr
         self.schedule = RandomActivation(self)
-        self.grid = MultiGrid(width, height, True)
+        #self.grid = MultiGrid(width, height, True)
+        self.grid = Grid(width, height, True)
 
         self.running = True
         self.datacollector = DataCollector(model_reporters={
