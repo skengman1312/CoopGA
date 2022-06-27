@@ -63,7 +63,7 @@ class PredatorAgent(Agent):
 
 # TODO instead of fear, implement herds according to genotype
 
-class RunningFoodAgent(Agent):
+class PreyAgent(Agent):
     """
     Agent model with fear running from pred
     """
