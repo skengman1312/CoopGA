@@ -9,8 +9,17 @@ from mesa.time import BaseScheduler
 dist = lambda x, y: sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
 
 
+def predator_food_stat(model):
+    """
+    collects data about predator mean food
+    """
+    agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "predator"]
+    if len(agent_food) > 0:
+        return sum(agent_food)/len(agent_food)
+
+
 class PredatorAgent(Agent):
-    """A Food Agent seeking survival."""
+    """A Predator Agent seeking for prey agents."""
 
     def __init__(self, unique_id, model, agent_type="predator", sight=None):
         """
@@ -34,11 +43,11 @@ class PredatorAgent(Agent):
         possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
                                                           include_center=False)  # all the cells at dist = 1
 
-        # TODO consider only movement towards creatures
-
         nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        nb = [x.pos for x in nb if x.type == "food"] if self.type == "creature" \
-            else [x.pos for x in nb if x.type == "creature"]  # food ad distance r = sight, we may optimize it
+        print(nb)
+        nb = [x.pos for x in nb if x.type == "creature"]
+        # consider only the "creature" agents as possible food
+        # food ad distance r = sight, we may optimize it
 
         if len(nb) > 0:
             nearest_food = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
@@ -139,15 +148,13 @@ class FoodModel(Model):
 
     # TODO non so se avere due tipi di agenti (prey e predator) nello stesso scheduler possa creare problemi
 
-    def __init__(self, n_creatures: int, n_food: int, n_pred: int, sight: int, width: int, height: int, mr=0.001):
+    def __init__(self, n_creatures: int, n_pred: int, sight: int, width: int, height: int, mr=0.001):
         """
         n_creatures: number of creatures
-        n_food: number of food
         n_pred: number of predators
         sight: sight of creatures and predators
         """
         self.num_agents = n_creatures
-        self.num_food = n_food
         self.num_pred = n_pred
         self.mr = mr
         self.sight = sight
@@ -156,12 +163,11 @@ class FoodModel(Model):
 
         self.running = True
         self.datacollector = DataCollector(model_reporters={
-            "Mean creature food": creature_food_stat,
             "Mean predator food": predator_food_stat,
             "Number of creatures": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.type == "creature"]),
+                [agent for agent in x.schedule.agents if agent.agent_type == "creature"]),
             "Number of predators": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.type == "predator"])},
+                [agent for agent in x.schedule.agents if agent.agent_type == "predator"])},
             agent_reporters={"Health": "hp"})
 
         # Create agents
@@ -169,23 +175,15 @@ class FoodModel(Model):
         # -1 encodes for "run", 1 encodes for "form a herd"
         for i in range(self.num_agents):
             genotype = [round(random.uniform(-1, 1), 2)]
-            a = PreyAgent(i, self, genotype=genotype, type="creature", sight=sight)
+            a = PreyAgent(i, self, genotype=genotype, agent_type="creature", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents, self.num_agents + self.num_food):
-            a = PreyAgent(i, self, type="food")
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-
-        for i in range(self.num_agents + self.num_food, self.num_agents + self.num_food + self.num_pred):
-            a = PredatorAgent(i, self, type="predator", sight=sight)
+        for i in range(self.num_agents, self.num_agents + self.num_pred):
+            a = PredatorAgent(i, self, agent_type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -201,7 +199,7 @@ class FoodModel(Model):
         """
 
         # Prey reproduction
-        prey_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "creature"],
+        prey_agents = random.sample([agent for agent in self.schedule.agents if agent.agent_type == "creature"],
                                     k=self.schedule.get_agent_count())
 
         for i in range(0, len(prey_agents) - 1, 2):
@@ -213,7 +211,7 @@ class FoodModel(Model):
                 gen1 = []
                 if random.random() < self.mr:  # random mutation
                     gen1 = round(random.uniform(-1, 1), 2)
-                child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
+                child = PreyAgent(self.next_id(), self, genotype=gen1, agent_type="creature", sight=self.sight)
                 self.schedule.add(child)
 
             self.schedule.remove(agent1)
@@ -221,7 +219,7 @@ class FoodModel(Model):
 
         # Predator reproduction
         # non mi è chiaro se facciamo riprodurre anche loro oppure no ma in caso il codice è pronto
-        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "predator"],
+        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.agent_type == "predator"],
                                     k=self.schedule.get_agent_count())
 
         for i in range(0, len(pred_agents) - 1, 2):
@@ -230,7 +228,7 @@ class FoodModel(Model):
             n_child = random.randint(2, max_child)
 
             for j in range(n_child):
-                child = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight)
+                child = PredatorAgent(self.next_id(), self, agent_type="predator", sight=self.sight)
                 self.schedule.add(child)
 
             self.schedule.remove(agent1)
@@ -244,7 +242,7 @@ class FoodModel(Model):
             if a.hp <= 0:
                 self.grid.remove_agent(a)
                 self.schedule.remove(a)
-        if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
+        if not [agent for agent in self.schedule.agents if agent.agent_type == "creature"]:
             self.running = False
 
 
@@ -275,22 +273,19 @@ class RunningFoodModel(FoodModel):
 
     """
 
-    def __init__(self, ncreatures: int, nfood: int, npred: int, sight: int, width: int, height: int):
+    def __init__(self, ncreatures: int, npred: int, sight: int, width: int, height: int):
         """
         ncreatures: number of creatures
-        nfood: number of food
         npred: number of predators
         sight: sight of creatures and predators
         """
         self.num_agents = ncreatures
-        self.num_food = nfood
         self.num_pred = npred
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
         self.running = True
 
-        self.datacollector = DataCollector(model_reporters={"Mean creature food": creature_food_stat,
-                                                            "Mean predator food": predator_food_stat,
+        self.datacollector = DataCollector(model_reporters={"Mean predator food": predator_food_stat,
                                                             "Number of creatures": lambda x: len(
                                                                 [agent for agent in x.schedule.agents if
                                                                  agent.type == "creature"]),
@@ -301,23 +296,15 @@ class RunningFoodModel(FoodModel):
         # Create agents
         for i in range(self.num_agents):
             genotype = [round(random.uniform(-1, 1), 2)]
-            a = RunningFoodAgent(i, self, genotype=genotype, type="creature", sight=sight)
+            a = PreyAgent(i, self, genotype=genotype, agent_type="creature", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents, self.num_agents + self.num_food):
-            a = RunningFoodAgent(i, self, genotype=[], type="food")
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-
-        for i in range(self.num_agents + self.num_food, self.num_agents + self.num_food + self.num_pred):
-            a = RunningFoodAgent(i, self, genotype=[], type="predator", sight=sight)
+        for i in range(self.num_agents, self.num_agents + self.num_pred):
+            a = PreyAgent(i, self, genotype=[], agent_type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
