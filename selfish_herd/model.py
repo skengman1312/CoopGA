@@ -21,7 +21,7 @@ def predator_food_stat(model):
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    def __init__(self, unique_id, model, type="predator", sight=5):
+    def __init__(self, unique_id, model, type="predator", sight=10):
         """
         Food Agent init function
         Type can be either food, creature or predator
@@ -45,7 +45,7 @@ class PredatorAgent(Agent):
                                                           include_center=False)  # all the cells at dist = 1
 
         nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        print(nb)
+        #print(nb)
         nb = [x.pos for x in nb if x.type == "creature"]
         # consider only the "creature" agents as possible food
         # food ad distance r = sight, we may optimize it
@@ -73,29 +73,17 @@ class PredatorAgent(Agent):
                 break
 
     def hunt(self, nf):
-        """
-        "hunting" function to code for the behaviour of the predators
-        nf: nearest creature
-        """
-        """
-        function to move creatures and predators
-        """
 
-        """        nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius= self.sight)
-        nb = [x.pos for x in nb if x.type == "creature"]  # food ad distance r = sight, we may optimize it
+        #if dist(self.pos, nf) < 5:
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=4)
+        # all the cells at dist = 1
 
-        if len(nb) > 0:
-            nf = min(nb, key = lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))"""
+        new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
+        #self.hp -= 0.5 * dist(self.pos, nf)
+        self.model.grid.move_agent(self, new_position)
 
-        if dist(self.pos, nf) < 5:
-            possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False,
-                                                              radius=4)  # all the cells at dist = 1
-            new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
-            self.hp -= 0.5 * dist(self.pos, nf)
-            self.model.grid.move_agent(self, new_position)
-
-        else:
-            return
+        #else:
+        #    return
 
 
 # TODO instead of fear, implement herds according to genotype
