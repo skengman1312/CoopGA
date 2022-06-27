@@ -65,7 +65,7 @@ class MultigeneFamilyModel(FamilyModel):
         sd = 0.1
         return np.exp(-((phenotype - self.mean) / sd) ** 2)
         # (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)  #  phenotype +0.000001
-        # TODO: changing fitness with proper timestep
+
 
     def reproductive_fitness_multimodal(self, agent):
         #
@@ -93,7 +93,7 @@ class MultigeneFamilyModel(FamilyModel):
         m1 = random.random()
         if m1 < 0.2:
             m2 = random.uniform(m1 + 0.2, 1)
-        elif m1 > 0.2:
+        elif m1 > 0.8:
             m2 = random.uniform(0, m1 - 0.2)
         else:
             m2 = random.choice([random.uniform(m1 + 0.2, 1), random.uniform(0, m1 - 0.2)])
