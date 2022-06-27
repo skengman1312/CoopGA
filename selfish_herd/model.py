@@ -118,8 +118,10 @@ class PreyAgent(Agent):
             - if no creature, move in the opposite direction wrt the predator
         if no predator, random move
         """
-        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
+        all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
                                                           include_center=False)  # all the cells at dist = 1
+
+        possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empy(x)]
         fear_vect = self.panic()
         print("fear vector:", fear_vect)
         print("self.position:", self.pos)
@@ -131,9 +133,11 @@ class PreyAgent(Agent):
         mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
         #print("move_vectorize", mov_vectorize)
         move_vect = None
-
+        """
         if fear_vect:
             if nprey:
+                # TODO Se sono già in un herd devono muoversi tutti asseme? Cosa succede?
+
                 print(nprey)
                 nearest_prey = min(nprey, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
                 print("nearest prey:", nearest_prey)
@@ -150,6 +154,32 @@ class PreyAgent(Agent):
             new_position = self.random.choice(possible_steps)
 
         print(new_position)
+        self.model.grid.move_agent(self, new_position)
+
+
+            """ 
+        if len(nprey) > 0 or fear_vect:
+
+            mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
+            move_vect = None
+
+            # TODO GENOTYPE
+
+            if len(nprey) > 0:
+                nearest_prey = min(nprey, key=lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
+                move_vect = mov_vectorize(self.pos, nearest_prey)
+            if fear_vect:
+                move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect #sum prod fear + move -> scappa
+
+                #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
+
+            vect_landing = [coord[0]-coord[1] for coord in zip(self.pos, move_vect)]
+            new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+
+        else:
+            new_position = self.pos
+            #new_position = self.random.choice(possible_steps)
+
         self.model.grid.move_agent(self, new_position)
 
     def panic(self):
@@ -170,7 +200,8 @@ class PreyAgent(Agent):
             print("nearest predator:", nearest_predator)
 
             # TODO add weight for genotype
-            return mov_vectorize(self.pos, [-x for x in nearest_predator])
+            #return mov_vectorize(self.pos, [-x for x in nearest_predator])
+            return mov_vectorize([x for x in nearest_predator], self.pos )
 
         return None
 
