@@ -63,16 +63,28 @@ class FamilyAgent(Agent):
 
 class FamilyModel(Model):
     """
-    a model for simulation of the evolution of family related altruism
+    A model for simulation of the evolution of families. 
+    All families includes all altruists members or all non-altruist members.
+
+    :param Model: The model class for Mesa framework
+    :type Model: mesa.model
     """
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
-        :param N: total number of agents
-        :param r: initial ratio of altruistic allele
-        :param dr: survival rate
-        :param mr: mutation rate
+        A model for simulation of the evolution of families. 
+        All families includes all altruists members or all non-altruist members.
+
+        :param N: total number of agents, defaults to 500
+        :type N: int, optional
+        :param r: initial ratio of altruistic allele, defaults to 0.5
+        :type r: float, optional
+        :param dr: death rate, defaults to 0.95
+        :type dr: float, optional
+        :param mr: mutation rate, defaults to 0.001
+        :type mr: float, optional
         """
+
         self.schedule = SocialActivation(self)
         self.N = N
         self.mr = mr
@@ -86,10 +98,21 @@ class FamilyModel(Model):
         self.reproduce()
 
     def add_agents(self, N, r):
+        """
+        Add agents to the model with the 
+        right proportion (r) of altruistic allele
+
+        :param N: total number of agents
+        :type N: int
+        :param r: initial ratio of altruistic allele
+        :type r: float
+        """
+        # adding altruist agents (genotype = 1)
         for i in range(int(N * r)):
             agent = FamilyAgent(i, self, 1, i)
             self.schedule.add(agent)
 
+        # adding non-altruist agents (genotype = 1)
         for i in range(int(N * r), N):
             agent = FamilyAgent(i, self, 0, i)
             self.schedule.add(agent)
@@ -132,6 +155,3 @@ class FamilyModel(Model):
         # reproduction part
 
         # mesa.time.RandomActivationByType
-
-
-
