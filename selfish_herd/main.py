@@ -48,8 +48,8 @@ def agent_portrayal(agent):
 if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
-    chart_0 = ChartModule([{"Label": "Mean creature food", "Color": "Blue"},
-                           {"Label": "Mean predator food", "Color": "Red"}],
+    chart_0 = ChartModule([{"Label": "Selfish gene frequency", "Color": "Blue"},
+                           {"Label": "Fear frequency", "Color": "Red"}],
                           data_collector_name='datacollector', canvas_height=100, canvas_width=200)
     chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Blue"},
                            {"Label": "Number of predators", "Color": "Red"}],
