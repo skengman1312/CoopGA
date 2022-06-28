@@ -15,17 +15,30 @@ class IBDFamilyAgent(FamilyAgent):
         :return:
         """
 
-        A_index = self.model.active.index(self.unique_id)
-        A_room = self.model.room[A_index]
+        print("#############################################\nROOMS")
+        for r in self.model.rooms:
+            print(r)
+        print("#############################################")
 
-        # calculating the benefit
+        A_index = self.model.active.index(self.unique_id)
+        A_room = self.model.rooms[A_index]
+
         pre = str(self.model.schedule.steps) + "#"
 
-        # self.model.tree
         if self.genotype:
-            b = sum([self.model.tree.ibd_coeff(pre + self.unique_id,
-                    pre + i.unique_id) for i in A_room.remove(self)])
 
+            print("Actor ID", self.unique_id,
+                  "\tID in G ", pre + str(self.unique_id))
+            print("A_index ", A_index)
+            print("A_room ", A_room)
+            for a in A_room:
+                print(a.genotype, a.unique_id)
+
+            # calculating the benefit
+            b = sum([self.model.tree.ibd_coeff(pre + str(self.unique_id),
+                    pre + str(a.unique_id)) for a in A_room.remove(self)])
+
+            print("total benefit ", b)
             # it has to be tested yet
             # for i in A_room:
             #     if i.unique_id != self.unique_id:
@@ -51,7 +64,7 @@ class IBDFamilyModel(FamilyModel):
         self.tree = IBDFamilyTree(nx.DiGraph(), self)
         super().__init__(N=N, r=r, dr=dr, mr=mr)
         # genalogy of the simulation represented as a tree DAG
-        # TODO: adapt the datacollector module
+
         self.datacollector = DataCollector(model_reporters={
             "altruistic fraction": lambda x: len(
                 [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count(),
@@ -102,18 +115,8 @@ class IBDFamilyModel(FamilyModel):
         all_ids = [a.unique_id for a in self.schedule.agent_buffer()]
         random.shuffle(all_ids)
 
-        self.rooms = []
-        for x in range(0, len(all_ids), 5):
-            for a_r in all_ids[x:x + 5]:
-                room = []
-                for a in self.schedule.agent_buffer():
-                    if a.unique_id == a_r:
-                        room.append(a)
-                self.rooms.append(room)
-
-        # self.rooms = [[a.unique_id == a_r]
-        #               for x in range(0, len(all_ids), 5)
-        #               for a_r in all_ids[x:x + 5] for a in self.schedule.agent_buffer()]
+        self.rooms = np.random.choice(
+            self.schedule.agents, (len(self.schedule.agents) // 5, 5)).tolist()
 
         print(self.rooms)
         self.active = [random.choice(r).unique_id for r in self.rooms]
