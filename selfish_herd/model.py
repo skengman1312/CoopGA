@@ -225,7 +225,14 @@ class HerdModel(Model):
             "Number of creatures": lambda x: len(
                 [agent for agent in x.schedule.agents if agent.type == "creature"]),
             "Number of predators": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.type == "predator"])})  # ,
+                [agent for agent in x.schedule.agents if agent.type == "predator"]),
+            "n_agents": lambda x: x.schedule.get_agent_count(),
+            "Selfish gene frequency": lambda x: len(
+                [a for a in x.schedule.agent_buffer() if a.type == "creature" and a.genotype[0] >= 0]) /
+                                          len([agent for agent in x.schedule.agents if agent.type == "creature"]),
+            "Fear frequency": lambda x: len(
+                [a for a in x.schedule.agent_buffer() if a.type == "creature" and a.genotype[0] < 0]) /
+                                       len([agent for agent in x.schedule.agents if agent.type == "creature"])})  # ,
         # agent_reporters={"Health": "hp"})
 
         # Create agents
@@ -240,7 +247,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents, self.num_agents + self.num_pred):
+        for i in range(self.num_agents, self.num_agents + self.num_pred + 1):
             a = PredatorAgent(i, self, type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
