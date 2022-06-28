@@ -10,7 +10,7 @@ from mesa.visualization.modules import ChartModule
 if __name__ == '__main__':
     params = {"n_creatures": 150, #range(50, 200, 10),
               "n_pred": 50, #range(50, 100, 10),
-              "sight": 5, #range(15, 20, 2),
+              "sight": 20, #range(15, 20, 2),
               "mr": 0.001, #[0.001 * x for x in range(1, 2)],
               "width": 100, "height": 100}
 

@@ -15,7 +15,7 @@ from mesa.visualization.modules import ChartModule
 # se gli hp scendono a 0 la creatura è eliminata
 # il numero di cibo è costante
 
-
+# TODO plots in interface starts from zero, resolve this problem
 
 def agent_portrayal(agent):
     if agent.type == "creature":
