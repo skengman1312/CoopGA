@@ -15,11 +15,6 @@ class IBDFamilyAgent(FamilyAgent):
         :return:
         """
 
-        print("#############################################\nROOMS")
-        for r in self.model.rooms:
-            print(r)
-        print("#############################################")
-
         A_index = self.model.active.index(self.unique_id)
         A_room = self.model.rooms[A_index]
 
@@ -28,11 +23,12 @@ class IBDFamilyAgent(FamilyAgent):
         if self.genotype:
 
             print("Actor ID", self.unique_id,
-                  "\tID in G ", pre + str(self.unique_id))
-            print("A_index ", A_index)
-            print("A_room ", A_room)
+                  "\tID in G ", pre + str(self.unique_id),
+                  "\t fam ID ", self.family)
+            #print("A_index ", A_index)
+            #print("A_room ", A_room)
             for a in A_room:
-                print(a.genotype, a.unique_id)
+                print(a.genotype, a.unique_id, a.family)
 
             # calculating the benefit
             A_room.remove(self)
@@ -40,11 +36,7 @@ class IBDFamilyAgent(FamilyAgent):
                     pre + str(a.unique_id)) for a in A_room])
 
             print("total benefit ", b)
-            # it has to be tested yet
-            # for i in A_room:
-            #     if i.unique_id != self.unique_id:
-            #         b += self.model.tree.ibd_coeff(self.model.tree,
-            #                                        pre + self.unique_id, pre + i.unique_id)
+
             if b > 1:
                 if random.random() > self.model.dr:
                     return
@@ -117,8 +109,7 @@ class IBDFamilyModel(FamilyModel):
         random.shuffle(all_ids)
 
         self.rooms = np.random.choice(
-            self.schedule.agents, (len(self.schedule.agents) // 5, 5)).tolist()
-
+            self.schedule.agents, (len(self.schedule.agents) // 20, 10)).tolist()
 
         self.active = [random.choice(r).unique_id for r in self.rooms]
 
@@ -129,6 +120,6 @@ class IBDFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N=50, mr=0.001, r=0.5)
+    model = IBDFamilyModel(N=500, mr=0.001, r=0.5)
 
     model.step()
