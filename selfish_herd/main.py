@@ -55,6 +55,7 @@ def agent_portrayal(agent):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     #empty_model = FoodModel(10,10,10)
+
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
     chart_0 = ChartModule([{"Label": "Selfish gene frequency", "Color": "Blue"},
                            {"Label": "Fear frequency", "Color": "Green"}],

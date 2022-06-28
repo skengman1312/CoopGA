@@ -135,7 +135,7 @@ class PreyAgent(Agent):
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
 
 
-        print("self.position:", self.pos)
+        #print("self.position:", self.pos)
 
         np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
         npredator = [x.pos for x in np if x.type == "predator"]
@@ -148,7 +148,7 @@ class PreyAgent(Agent):
 
             fear_vect = self.panic(npredator, mov_vectorize)
             #print("fear vector:", fear_vect)
-            print(len(nprey))
+            #print(len(nprey))
             if len(nprey) > 0 or fear_vect:
 
                 # add the contribution of both the nearest creature and the nearest predator
@@ -159,18 +159,18 @@ class PreyAgent(Agent):
                 if len(nprey) > 0:
                     nearest_prey = min(nprey,
                                        key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-                    print("nearest prey", nearest_prey)
+                    #print("nearest prey", nearest_prey)
                     move_vect = mov_vectorize(self.pos, nearest_prey)
-                    print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}", f"Genotype: {self.genotype}")
+                    #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}", f"Genotype: {self.genotype}")
                     move_vect = [round(self.genotype[0] * x, 2) for x in move_vect]
-                    print("move vect", move_vect)
+                    #print("move vect", move_vect)
 
                 if fear_vect:
-                    print("fear vector:", fear_vect)
+                    #print("fear vector:", fear_vect)
                     move_vect = mov_vectorize(fear_vect,
                                               move_vect) if move_vect else fear_vect  # sum prod fear + move -> scappa
 
-                    print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
+                    #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
                 vect_landing: list[Any] = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
                 new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
@@ -181,7 +181,7 @@ class PreyAgent(Agent):
         else:
             new_position = self.pos
 
-        print("new position", new_position)
+        #print("new position", new_position)
         self.model.grid.move_agent(self, new_position)
 
     def panic(self, npredator, mov_vectorize):
@@ -192,7 +192,7 @@ class PreyAgent(Agent):
             # key function specify how to compute the minimum (x is each element in np list)
             nearest_predator = min(npredator,
                                    key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            print("nearest predator:", nearest_predator)
+            #print("nearest predator:", nearest_predator)
 
             # return mov_vectorize(self.pos, [-x for x in nearest_predator])
             return mov_vectorize([x for x in nearest_predator], self.pos)
@@ -242,7 +242,7 @@ class HerdModel(Model):
         # Create agents
         # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
         # -1 encodes for "run", 1 encodes for "form a herd"
-        for i in range(self.num_agents//2 + 1):
+        for i in range(self.num_agents//2):
             genotype = [1]
             a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
@@ -251,7 +251,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents//2 + 1):
+        for i in range(self.num_agents//2):
             genotype = [-1]
             a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
@@ -260,13 +260,15 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(0, self.num_pred + 1):
+
+        for i in range(0, self.num_pred):
             a = PredatorAgent(self.next_id(), self, type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
+
 
     def reproduce(self, max_child=10):
         """
@@ -305,11 +307,6 @@ class HerdModel(Model):
             self.grid.remove_agent(agent1)
             self.grid.remove_agent(agent2)
 
-        print("PROVA")
-        print("Selfish gene frequency", len(
-            [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                                        len([agent for agent in self.schedule.agents if agent.type == "creature"])
-        if len([agent for agent in self.schedule.agents if agent.type == "creature"]) != 0 else 0)
 
         """
         # Predator reproduction
