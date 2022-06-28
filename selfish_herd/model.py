@@ -1,4 +1,6 @@
 import random
+from typing import List, Any
+
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
@@ -16,7 +18,7 @@ def predator_food_stat(model):
     """
     agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "predator"]
     if len(agent_food) > 0:
-        return sum(agent_food)/len(agent_food)
+        return sum(agent_food) / len(agent_food)
 
 
 class PredatorAgent(Agent):
@@ -46,7 +48,7 @@ class PredatorAgent(Agent):
                                                           include_center=False)  # all the cells at dist = 1
 
         nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        #print(nb)
+        # print(nb)
         nb = [x.pos for x in nb if x.type == "creature"]
         # consider only the "creature" agents as possible food
         # food ad distance r = sight, we may optimize it
@@ -54,8 +56,8 @@ class PredatorAgent(Agent):
         if len(nb) > 0:
             nearest_pray = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
             self.hunt(nearest_pray)
-            #self.model.schedule.remove(nearest_pray)
-            #self.grid.remove_agent(nearest_pray)
+            # self.model.schedule.remove(nearest_pray)
+            # self.grid.remove_agent(nearest_pray)
             return
         else:
             new_position = self.random.choice(possible_steps)
@@ -77,23 +79,22 @@ class PredatorAgent(Agent):
 
         if dist(self.pos, nf) < 5:
             possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=4)
-        # all the cells at dist = 1
+            # all the cells at dist = 1
 
             new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
-        #self.hp -= 0.5 * dist(self.pos, nf)
+            # self.hp -= 0.5 * dist(self.pos, nf)
             self.model.grid.move_agent(self, new_position)
 
         else:
             return
 
 
-# TODO instead of fear, implement herds according to genotype
-
 class PreyAgent(Agent):
     """
     Agent model with fear running from pred
     """
-    def __init__(self, unique_id, model, genotype: list, type ="creature", sight=None, ):
+
+    def __init__(self, unique_id, model, genotype: list, type="creature", sight=None, ):
         """
         Food Agent init function
         Type can be either food, creature or predator
@@ -102,8 +103,6 @@ class PreyAgent(Agent):
         self.genotype = genotype
         self.type = type
         self.sight = sight
-
-
 
     def step(self):
         # The agent's step will go here.
@@ -120,11 +119,11 @@ class PreyAgent(Agent):
         if no predator, random move
         """
         all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
-                                                          include_center=False)  # all the cells at dist = 1
+                                                              include_center=False)  # all the cells at dist = 1
 
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
-        fear_vect = self.panic()
-        print("fear vector:", fear_vect)
+
+
         print("self.position:", self.pos)
 
         np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
@@ -132,80 +131,60 @@ class PreyAgent(Agent):
         nprey = [x.pos for x in np if x.type == "creature"]
 
         mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-        #print("move_vectorize", mov_vectorize)
-        move_vect = None
-        """
-        if fear_vect:
-            if nprey:
-                # TODO Se sono già in un herd devono muoversi tutti asseme? Cosa succede?
+        # print("move_vectorize", mov_vectorize)
 
-                print(nprey)
-                nearest_prey = min(nprey, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-                print("nearest prey:", nearest_prey)
-                move_vect = mov_vectorize(nearest_prey, move_vect) if move_vect else nearest_prey  # sum prod nearest prey + move
-                vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
-                new_position = min(possible_steps, key=lambda x: sqrt(
-                    ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
-            else:
-                move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect  # sum prod fear + move
-                vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
-                new_position = min(possible_steps, key=lambda x: sqrt(
-                    ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
-        else:
-            new_position = self.random.choice(possible_steps)
+        if possible_steps:
 
-        print(new_position)
-        self.model.grid.move_agent(self, new_position)
+            fear_vect = self.panic(npredator, mov_vectorize)
+            #print("fear vector:", fear_vect)
+            print(len(nprey))
+            if len(nprey) > 0 or fear_vect:
 
+                # add the contribution of both the nearest creature and the nearest predator
+                move_vect = None
 
-            """ 
-        if len(nprey) > 0 or fear_vect:
+                # TODO GENOTYPE
 
-            mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-            move_vect = None
+                if len(nprey) > 0:
+                    nearest_prey = min(nprey,
+                                       key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+                    print("nearest prey", nearest_prey)
+                    move_vect = mov_vectorize(self.pos, nearest_prey)
+                    print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}", f"Genotype: {self.genotype}")
+                    move_vect = [round(self.genotype[0] * x, 2) for x in move_vect]
+                    print("move vect", move_vect)
 
-            # TODO GENOTYPE
+                if fear_vect:
+                    print("fear vector:", fear_vect)
+                    move_vect = mov_vectorize(fear_vect,
+                                              move_vect) if move_vect else fear_vect  # sum prod fear + move -> scappa
 
-            if len(nprey) > 0:
-                nearest_prey = min(nprey, key=lambda x: sqrt(((self.pos[0]-x[0])**2) + ((self.pos[1]-x[1])**2)))
-                move_vect = mov_vectorize(self.pos, nearest_prey)
-            if fear_vect:
-                move_vect = mov_vectorize(fear_vect, move_vect) if move_vect else fear_vect #sum prod fear + move -> scappa
+                    print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
-                #print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
-
-            vect_landing = [coord[0]-coord[1] for coord in zip(self.pos, move_vect)]
-            if possible_steps:
+                vect_landing: list[Any] = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
                 new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+
             else:
-                new_position = self.pos
+                new_position = self.random.choice(possible_steps)
 
         else:
             new_position = self.pos
-            #new_position = self.random.choice(possible_steps)
 
+        print("new position", new_position)
         self.model.grid.move_agent(self, new_position)
 
-    def panic(self):
+    def panic(self, npredator, mov_vectorize):
 
-        mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-
-        #retrieve positions of all predators
-        np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        npredator = [x.pos for x in np if x.type == "predator"]
-        nprey = [x.pos for x in np if x.type == "creature"]
-
-
-        #if there is at least one predator (np = True if len(np)>0)
+        # if there is at least one predator (np = True if len(np)>0)
         if npredator:
-            #find the nearest predator using the euclidean distance
-            #key function specify how to compute the minimum (x is each element in np list)
-            nearest_predator = min(npredator, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+            # find the nearest predator using the euclidean distance
+            # key function specify how to compute the minimum (x is each element in np list)
+            nearest_predator = min(npredator,
+                                   key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
             print("nearest predator:", nearest_predator)
 
-            # TODO add weight for genotype
-            #return mov_vectorize(self.pos, [-x for x in nearest_predator])
-            return mov_vectorize([x for x in nearest_predator], self.pos )
+            # return mov_vectorize(self.pos, [-x for x in nearest_predator])
+            return mov_vectorize([x for x in nearest_predator], self.pos)
 
         return None
 
@@ -226,7 +205,7 @@ class HerdModel(Model):
         self.sight = sight
         self.mr = mr
         self.schedule = RandomActivation(self)
-        #self.grid = MultiGrid(width, height, True)
+        # self.grid = MultiGrid(width, height, True)
         self.grid = Grid(width, height, True)
 
         self.running = True
@@ -235,8 +214,8 @@ class HerdModel(Model):
             "Number of creatures": lambda x: len(
                 [agent for agent in x.schedule.agents if agent.type == "creature"]),
             "Number of predators": lambda x: len(
-                [agent for agent in x.schedule.agents if agent.type == "predator"])})#,
-            #agent_reporters={"Health": "hp"})
+                [agent for agent in x.schedule.agents if agent.type == "predator"])})  # ,
+        # agent_reporters={"Health": "hp"})
 
         # Create agents
         # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
@@ -304,7 +283,7 @@ class HerdModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-        #self.datacollector.collect(self)
+        # self.datacollector.collect(self)
         self.schedule.step()
         self.datacollector.collect(self)
         """ for a in self.schedule.agents:
@@ -313,4 +292,3 @@ class HerdModel(Model):
                 self.schedule.remove(a)"""
         if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
             self.running = False
-
