@@ -268,7 +268,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-    def reproduce(self, max_child=4):
+    def reproduce(self, max_child=10):
         """
         function to generate the new population from the parent individuals both for prey and predators
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
@@ -288,31 +288,13 @@ class HerdModel(Model):
             for j in range(n_child):
                 gen1 = []
                 gen1.append(agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0])
-                #if random.random() < self.mr:  # random mutation
-                    #gen1[0] .append(round(random.uniform(-1, 1), 2))
 
+                if random.random() < self.mr:  # random mutation
+                    gen1[0] = round(random.uniform(-1, 1), 2)
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
 
-                print("PROVAAAAAAAAA interno 0000")
-                print("Selfish gene frequency", len(
-                    [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                                                len([agent for agent in self.schedule.agents if
-                                                     agent.type == "creature"])
-                if len([agent for agent in self.schedule.agents if agent.type == "creature"]) != 0 else 0)
-
-                print("len prima", len([agent for agent in self.schedule.agents if agent.type == "creature"]))
-
                 self.schedule.add(child)
-
-                print("len dopo", len([agent for agent in self.schedule.agents if agent.type == "creature"]))
-
-                print("PROVAAAAAAAAA interno 0001")
-                print("Selfish gene frequency", len(
-                    [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                                                len([agent for agent in self.schedule.agents if
-                                                     agent.type == "creature"])
-                if len([agent for agent in self.schedule.agents if agent.type == "creature"]) != 0 else 0)
 
                 x = self.random.randrange(self.grid.width)
                 y = self.random.randrange(self.grid.height)
@@ -349,7 +331,7 @@ class HerdModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-        #self.datacollector.collect(self)
+
         self.schedule.step()
 
         """ for a in self.schedule.agents:
