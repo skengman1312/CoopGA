@@ -22,19 +22,19 @@ class IBDFamilyAgent(FamilyAgent):
 
         if self.genotype:
 
-            print("Actor ID", self.unique_id,
-                  "\tID in G ", pre + str(self.unique_id),
-                  "\t fam ID ", self.family)
+            # print("Actor ID", self.unique_id,
+            #       "\tID in G ", pre + str(self.unique_id),
+            #       "\t fam ID ", self.family)
 
             # for a in A_room:
             #     print(a.genotype, a.unique_id, a.family)
 
             # calculating the benefit
             A_room.remove(self)
-            b = sum([self.model.tree.ibd_coeff(pre + str(self.unique_id),
+            b = sum([self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
                     pre + str(a.unique_id)) for a in A_room])
 
-            print("total benefit ", b)
+            #print("total benefit ", b)
 
             if b > 1:
                 if random.random() > self.model.dr:
@@ -92,6 +92,7 @@ class IBDFamilyModel(FamilyModel):
             self.schedule.add(IBDFamilyAgent(
                 i, self, newgen[i]["genotype"], newgen[i]["family"]))
             self.tree.add_child(newgen[i], i)
+        self.tree.update_ig()
 
     def step(self) -> None:
         """
@@ -119,7 +120,7 @@ class IBDFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N=200, mr=0.001, r=0.5)
+    model = IBDFamilyModel(N=100, mr=0.001, r=0.5)
     print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
     for i in range(10):
         print(f"#########################################\nStep n{i}\n######################")
