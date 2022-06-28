@@ -37,7 +37,7 @@ class PredatorAgent(Agent):
     def step(self):
         # The agent's step will go here.
         # For demonstration purposes we will print the agent's unique_id
-        if self.hp<5:
+        if self.hp < 5:
             self.move()
         else:
             self.hp -= 1
@@ -53,7 +53,7 @@ class PredatorAgent(Agent):
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
 
         nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        #print(nb)
+        # print(nb)
         nb = [x.pos for x in nb if x.type == "creature"]
         # consider only the "creature" agents as possible food
         # food ad distance r = sight, we may optimize it
@@ -69,7 +69,7 @@ class PredatorAgent(Agent):
                     new_position = min(possible_steps, key=lambda x: sqrt(
                         ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
                     self.model.grid.move_agent(self, new_position)
-                self.hp = self.hp - 1 if self.hp>0 else self.hp
+                self.hp = self.hp - 1 if self.hp > 0 else self.hp
             # self.model.schedule.remove(nearest_pray)
             # self.grid.remove_agent(nearest_pray)
         else:
@@ -134,7 +134,6 @@ class PreyAgent(Agent):
 
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
 
-
         print("self.position:", self.pos)
 
         np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
@@ -147,7 +146,7 @@ class PreyAgent(Agent):
         if possible_steps:
 
             fear_vect = self.panic(npredator, mov_vectorize)
-            #print("fear vector:", fear_vect)
+            # print("fear vector:", fear_vect)
             print(len(nprey))
             if len(nprey) > 0 or fear_vect:
 
@@ -173,7 +172,8 @@ class PreyAgent(Agent):
                     print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
                 vect_landing: list[Any] = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
-                new_position = min(possible_steps, key=lambda x: sqrt(((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+                new_position = min(possible_steps, key=lambda x: sqrt(
+                    ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
 
             else:
                 new_position = self.random.choice(possible_steps)
@@ -218,7 +218,7 @@ class HerdModel(Model):
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
         self.current_id = 0
-        #self.grid = Grid(width, height, True)
+        # self.grid = Grid(width, height, True)
 
         self.running = True
         self.datacollector = DataCollector(model_reporters={
@@ -230,19 +230,20 @@ class HerdModel(Model):
             "n_agents": lambda x: x.schedule.get_agent_count(),
             "Selfish gene frequency": lambda x: len(
                 [a for a in x.schedule.agent_buffer() if a.type == "creature" and a.genotype[0] >= 0]) /
-                                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-                                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
+                                                len([agent for agent in x.schedule.agent_buffer() if
+                                                     agent.type == "creature"])
+            if len([agent for agent in x.schedule.agent_buffer() if agent.type == "creature"]) != 0 else 0,
             "Fear frequency": lambda x: len(
                 [a for a in x.schedule.agent_buffer() if a.type == "creature" and a.genotype[0] < 0]) /
-                                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-                                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0
-            })  # ,
+                                        len([agent for agent in x.schedule.agent_buffer() if agent.type == "creature"])
+            if len([agent for agent in x.schedule.agent_buffer() if agent.type == "creature"]) != 0 else 0
+        })  # ,
         # agent_reporters={"Health": "hp"})
 
         # Create agents
         # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
         # -1 encodes for "run", 1 encodes for "form a herd"
-        for i in range(self.num_agents//2 + 1):
+        for i in range(self.num_agents // 2 + 1):
             genotype = [1]
             a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
@@ -251,7 +252,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents//2 + 1):
+        for i in range(self.num_agents // 2 + 1):
             genotype = [-1]
             a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
@@ -288,7 +289,7 @@ class HerdModel(Model):
             for j in range(n_child):
                 gen1 = []
                 if random.random() < self.mr:  # random mutation
-                    gen1 = round(random.uniform(-1, 1), 2)
+                    gen1 = [round(random.uniform(-1, 1), 2)]
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
                 self.schedule.add(child)
                 x = self.random.randrange(self.grid.width)
@@ -318,17 +319,17 @@ class HerdModel(Model):
 
     def step(self):
         """Advance the model by one step."""
-        #self.datacollector.collect(self)
+        # self.datacollector.collect(self)
         self.schedule.step()
 
         """ for a in self.schedule.agents:
             if a.hp <= 0:
                 self.grid.remove_agent(a)
                 self.schedule.remove(a)"""
-        if len([agent for agent in self.schedule.agents if agent.type == "creature"]) <= 40:
-            self.reproduce()
 
         if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
             self.running = False
+        if len([agent for agent in self.schedule.agent_buffer() if agent.type == "creature"]) <= 40:
+            self.reproduce()
 
         self.datacollector.collect(self)
