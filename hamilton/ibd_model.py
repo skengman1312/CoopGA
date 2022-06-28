@@ -25,10 +25,9 @@ class IBDFamilyAgent(FamilyAgent):
             print("Actor ID", self.unique_id,
                   "\tID in G ", pre + str(self.unique_id),
                   "\t fam ID ", self.family)
-            #print("A_index ", A_index)
-            #print("A_room ", A_room)
-            for a in A_room:
-                print(a.genotype, a.unique_id, a.family)
+
+            # for a in A_room:
+            #     print(a.genotype, a.unique_id, a.family)
 
             # calculating the benefit
             A_room.remove(self)
@@ -50,7 +49,7 @@ class IBDFamilyAgent(FamilyAgent):
 class IBDFamilyModel(FamilyModel):
     pass
 
-    def __init__(self, N=50, r=0.5, dr=0.95, mr=0.001):
+    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
         add graph to attributes
         """
@@ -79,13 +78,13 @@ class IBDFamilyModel(FamilyModel):
         :return:
         """
         mating_ind = random.sample(
-            [agent for agent in self.schedule.agents], k=self.N)
+            [agent for agent in self.schedule.agents], k=self.N//2)
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), "family": p[0].unique_id,
                    "parents id": [pa.unique_id for pa in p]} for p in
-                  mating_pairs for i in range(10)]
+                  mating_pairs for i in range(20)]
 
         self.tree.remove_generation(self.schedule.steps - 3)
         [self.schedule.remove((a)) for a in self.schedule.agent_buffer()]
@@ -109,7 +108,7 @@ class IBDFamilyModel(FamilyModel):
         random.shuffle(all_ids)
 
         self.rooms = np.random.choice(
-            self.schedule.agents, (len(self.schedule.agents) // 20, 10)).tolist()
+            self.schedule.agents, (len(self.schedule.agents) // 5, 5)).tolist()
 
         self.active = [random.choice(r).unique_id for r in self.rooms]
 
@@ -120,6 +119,10 @@ class IBDFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N=500, mr=0.001, r=0.5)
-
-    model.step()
+    model = IBDFamilyModel(N=200, mr=0.001, r=0.5)
+    print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
+    for i in range(10):
+        print(f"#########################################\nStep n{i}\n######################")
+        model.step()
+    print("\naltruists after steps\t",
+          len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
