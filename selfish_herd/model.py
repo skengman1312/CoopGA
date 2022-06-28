@@ -105,7 +105,7 @@ class PreyAgent(Agent):
     Agent model with fear running from pred
     """
 
-    def __init__(self, unique_id, model, genotype: list, type="creature", sight=None, ):
+    def __init__(self, unique_id, model, genotype: list, type="creature", sight=None):
         """
         Food Agent init function
         Type can be either food, creature or predator
@@ -205,7 +205,7 @@ class PreyAgent(Agent):
 class HerdModel(Model):
     """A model with some number of food, creatures and predators."""
 
-    def __init__(self, n_creatures: int, n_pred: int, sight: int, mr: int, width: int, height: int):
+    def __init__(self, n_creatures: int, n_pred: int, sight: int, rest_time: int, mr: int, width: int, height: int):
         """
         n_creatures: number of creatures
         n_pred: number of predators
@@ -261,7 +261,7 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(0, self.num_pred):
-            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight)
+            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, rest_time=rest_time)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
