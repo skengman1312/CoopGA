@@ -52,6 +52,10 @@ class IBDFamilyModel(FamilyModel):
         super().__init__(N=N, r=r, dr=dr, mr=mr)
         # genalogy of the simulation represented as a tree DAG
         # TODO: adapt the datacollector module
+        self.datacollector = DataCollector(model_reporters={
+            "altruistic fraction": lambda x: len(
+                [a for a in x.schedule.agent_buffer() if a.genotype == 1]) / x.schedule.get_agent_count(),
+        })
 
     def add_agents(self, N, r):
         for i in range(int(N * r)):
