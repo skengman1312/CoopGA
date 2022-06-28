@@ -35,8 +35,9 @@ class IBDFamilyAgent(FamilyAgent):
                 print(a.genotype, a.unique_id)
 
             # calculating the benefit
+            A_room.remove(self)
             b = sum([self.model.tree.ibd_coeff(pre + str(self.unique_id),
-                    pre + str(a.unique_id)) for a in A_room.remove(self)])
+                    pre + str(a.unique_id)) for a in A_room])
 
             print("total benefit ", b)
             # it has to be tested yet
@@ -118,7 +119,7 @@ class IBDFamilyModel(FamilyModel):
         self.rooms = np.random.choice(
             self.schedule.agents, (len(self.schedule.agents) // 5, 5)).tolist()
 
-        print(self.rooms)
+
         self.active = [random.choice(r).unique_id for r in self.rooms]
 
         self.schedule.step(self.active)
