@@ -30,17 +30,18 @@ class PredatorAgent(Agent):
         Type can be either food, creature or predator
         """
         super().__init__(unique_id, model)
-        self.count_rest = 0
-        self.rest_time = rest_time
+        self.hp = 0
         self.type = type
         self.sight = sight
+        self.rest_time = rest_time
 
     def step(self):
         # The agent's step will go here.
         # For demonstration purposes we will print the agent's unique_id
-        if self.count_rest>0:
+        if self.hp == 0:
             self.move()
-
+        else:
+            self.hp -= 1
 
     def move(self):
         """
@@ -69,13 +70,12 @@ class PredatorAgent(Agent):
                     new_position = min(possible_steps, key=lambda x: sqrt(
                         ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
                     self.model.grid.move_agent(self, new_position)
-                self.hp = self.hp - 1 if self.hp > 0 else self.hp
+
             # self.model.schedule.remove(nearest_pray)
             # self.grid.remove_agent(nearest_pray)
         else:
             new_position = self.random.choice(possible_steps)
             self.model.grid.move_agent(self, new_position)
-            self.hp = self.hp - 1 if self.hp else self.hp
 
     def eat(self):
         """
@@ -86,7 +86,7 @@ class PredatorAgent(Agent):
             if a.type == "creature":
                 self.model.schedule.remove(a)
                 self.model.grid.remove_agent(a)
-                self.hp += 5
+                self.hp = self.rest_time
                 break
 
     def hunt(self, nf):
