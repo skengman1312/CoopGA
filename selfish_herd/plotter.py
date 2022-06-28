@@ -5,12 +5,11 @@ from mpl_toolkits.mplot3d import *
 import numpy as np
 
 data = pd.read_csv("result.csv", index_col=0)
-multidata = pd.read_csv("multi_result.csv", index_col=0)
+#multidata = pd.read_csv("multi_result.csv", index_col=0)
 #print(multidata)
 
 
 def plot_prevalence(data, title="", params=["n_creatures", "n_pred", "sight", "mr"]):
-
     """
     function used to plot the mean of the allele prevalence across several simulation
     """
@@ -20,7 +19,7 @@ def plot_prevalence(data, title="", params=["n_creatures", "n_pred", "sight", "m
     msk = [data["iteration"] == i for i in data["iteration"].unique()]
     ms = data["Step"].max()  # max step
     # grouping all the lines in a single df without other data
-    lines = pd.DataFrame(data={m: data[msk[m]]["altruistic fraction"].reset_index(
+    lines = pd.DataFrame(data={m: data[msk[m]]["Selfish gene frequency"].reset_index(
         drop=True) for m in range(len(msk))})
     # computing the mean
     lines['mean'] = lines.mean(axis=1)
@@ -41,7 +40,7 @@ def plot_prevalence(data, title="", params=["n_creatures", "n_pred", "sight", "m
         spine.set_visible(False)
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency")
-    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    maintitle = f"Selfish herd {title}" if title else "Selfish herd"
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
     plt.title(f"{maintitle}\n{subtitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
@@ -50,7 +49,7 @@ def plot_prevalence(data, title="", params=["n_creatures", "n_pred", "sight", "m
     pass
 
 
-def get_param_ID(data, params=["N", "r", "dr", "mr"]):
+def get_param_ID(data, params=["n_creatures", "n_pred", "sight", "mr"]):
     """
 
     """
@@ -61,7 +60,7 @@ def get_param_ID(data, params=["N", "r", "dr", "mr"]):
     return data
 
 
-def multi_plot_prevalence(data, params=["N", "r", "dr", "mr"]):
+def multi_plot_prevalence(data, params=["n_creatures", "n_pred", "sight", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
@@ -137,9 +136,9 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     plt.show()
 
 
-labels = ["mutation rate", "death rate", "ending freq altruism"]
-scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
-          all_params=["N", "r", "dr", "mr"], title="scatter")
+labels = ["mutation rate", "sight", "ending freq selfish"]
+#scatter3D(multidata, param1="mr", param2="sight", result="Selfish gene frequency", labels=labels,
+          #all_params=["n_creatures", "n_pred", "sight", "mr"], title="scatter")
 
 #scatter3D(data, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
           #all_params=["N", "r", "dr", "mr"], title="scatter")
