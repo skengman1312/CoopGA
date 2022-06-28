@@ -229,11 +229,11 @@ class HerdModel(Model):
                 [agent for agent in x.schedule.agents if agent.type == "predator"]),
             "n_agents": lambda x: x.schedule.get_agent_count(),
             "Selfish gene frequency": lambda x: len(
-                [a for a in x.schedule.agent_buffer() if a.type == "creature" and a.genotype[0] >= 0]) /
+                [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
                                 len([agent for agent in x.schedule.agents if agent.type == "creature"])
                                 if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
             "Fear frequency": lambda x: len(
-                [a for a in x.schedule.agent_buffer() if a.type == "creature" and a.genotype[0] < 0]) /
+                [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] < 0]) /
                                 len([agent for agent in x.schedule.agents if agent.type == "creature"])
                                 if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0
             })  # ,
@@ -287,16 +287,47 @@ class HerdModel(Model):
 
             for j in range(n_child):
                 gen1 = []
-                if random.random() < self.mr:  # random mutation
-                    gen1 = round(random.uniform(-1, 1), 2)
+                gen1.append(agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0])
+                #if random.random() < self.mr:  # random mutation
+                    #gen1[0] .append(round(random.uniform(-1, 1), 2))
+
+
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
+
+                print("PROVAAAAAAAAA interno 0000")
+                print("Selfish gene frequency", len(
+                    [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
+                                                len([agent for agent in self.schedule.agents if
+                                                     agent.type == "creature"])
+                if len([agent for agent in self.schedule.agents if agent.type == "creature"]) != 0 else 0)
+
+                print("len prima", len([agent for agent in self.schedule.agents if agent.type == "creature"]))
+
                 self.schedule.add(child)
+
+                print("len dopo", len([agent for agent in self.schedule.agents if agent.type == "creature"]))
+
+                print("PROVAAAAAAAAA interno 0001")
+                print("Selfish gene frequency", len(
+                    [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
+                                                len([agent for agent in self.schedule.agents if
+                                                     agent.type == "creature"])
+                if len([agent for agent in self.schedule.agents if agent.type == "creature"]) != 0 else 0)
+
                 x = self.random.randrange(self.grid.width)
                 y = self.random.randrange(self.grid.height)
                 self.grid.place_agent(child, (x, y))
 
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
+            self.grid.remove_agent(agent1)
+            self.grid.remove_agent(agent2)
+
+        print("PROVA")
+        print("Selfish gene frequency", len(
+            [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
+                                        len([agent for agent in self.schedule.agents if agent.type == "creature"])
+        if len([agent for agent in self.schedule.agents if agent.type == "creature"]) != 0 else 0)
 
         """
         # Predator reproduction
