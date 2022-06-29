@@ -294,8 +294,8 @@ class HerdModel(Model):
                 gen1 = []
                 gen1.append(agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0])
 
-                if random.random() < self.mr:  # random mutation
-                    gen1[0] = round(random.uniform(-1, 1), 2)
+                """if random.random() < self.mr:  # random mutation
+                    gen1[0] = round(random.uniform(-1, 1), 2)"""
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
 
@@ -337,8 +337,8 @@ class HerdModel(Model):
         if n_creature <= self.num_agents / 1.1:
             self.reproduce()
 
-        if len([a for a in self.schedule.agents if a.type == "creature" and a.genotype[0]]) / n_creature == 0: #selfish frequency == 0
-            self.running = False
+        """if len([a for a in self.schedule.agents if a.type == "creature" and a.genotype[0]]) / n_creature == 0: #selfish frequency == 0
+            self.running = False"""
 
 
         self.datacollector.collect(self)
