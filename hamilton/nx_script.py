@@ -71,8 +71,8 @@ class IBDFamilyTree:
         :type n1: IBDFamilyAgent
         :param n2: second agent
         :type n2: IBDFamilyAgent
-        :return: _description_ #############################
-        :rtype: _type_ #############################
+        :return: _description_ id of LCA in the graph
+        :rtype: _type_ int
         """
         v1, v2 = self.ig.vs(lambda x: x["_nx_name"] == n1)[0], self.ig.vs(lambda x: x["_nx_name"] == n2)[0]
         lca = self.rLCA(v1, v2)
@@ -82,7 +82,12 @@ class IBDFamilyTree:
             return None
 
     def rLCA(self, v1, v2):
-        ##################################
+        """
+        Recursive function to find LCA, should not be called directly, use ig_LCA instead
+        :param v1: id of first vertex
+        :param v2: id of second vertex
+        :return:
+        """
         p1, p2 = self.ig.predecessors(v1), self.ig.predecessors(v2)
         i = [value for value in p1 if value in p2]
         if len(i) > 0:
@@ -94,10 +99,10 @@ class IBDFamilyTree:
 
     def remove_generation(self, gen_id):
         """
-        Removing oldest generation from the DAG
+        Removing an entire  generation from the DAG
 
-        :param gen_id: generation ID to remove
-        :type gen_id: int ###########################
+        :param gen_id:  ID of the generation to remove
+        :type gen_id: int
         """
         gen = [n for n in self.G.nodes if n.split("#")[0] == str(gen_id)]
         self.G.remove_nodes_from(gen)
@@ -108,17 +113,16 @@ class IBDFamilyTree:
 
         :param child: agents to be added
         :type child: IBDFamilyAgent
-        :param cid: child ID for the graph #########################
-        :type cid: str #################################
+        :param cid: child ID for the graph
+        :type cid: str
         """
         pid = [f"{self.model.schedule.steps - 1}#{p}" for p in child["parents id"]]
         self.G.add_edges_from([[p, f"{self.model.schedule.steps}#{cid}"] for p in pid])
 
     def update_ig(self):
         """
-        update igraph DAG from networkx DAG with conversion
+        update igraph DAG from networkx DAG
         """
-        print("update")
         self.ig = ig.Graph.from_networkx(self.G)
 
 
