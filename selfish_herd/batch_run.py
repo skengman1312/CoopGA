@@ -1,15 +1,11 @@
 from model import HerdModel
 from mesa.batchrunner import batch_run
 import pandas as pd
-from mesa.visualization.modules import CanvasGrid
-from mesa.visualization.ModularVisualization import ModularServer
-from mesa.visualization.UserParam import UserSettableParameter
-from mesa.visualization.modules import ChartModule
 
 
 if __name__ == '__main__':
     params = {"n_creatures": 300, #range(50, 200, 10),
-              "n_pred": 7, #range(5, 10, 2),
+              "n_pred": 15, #range(5, 10, 2),
               "sight": range(5, 20, 4),
               "rest_time": 10, #range(0, 20, 5),
               "mr": 0, #[0.001 * x for x in range(1, 2)],

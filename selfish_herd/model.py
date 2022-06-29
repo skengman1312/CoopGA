@@ -24,7 +24,7 @@ def predator_food_stat(model):
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    def __init__(self, unique_id, model, type="predator", sight=10, rest_time=5):
+    def __init__(self, unique_id, model, type="predator", sight=10):
         """
         Food Agent init function
         Type can be either food, creature or predator
@@ -33,7 +33,7 @@ class PredatorAgent(Agent):
         self.hp = 0
         self.type = type
         self.sight = sight
-        self.rest_time = rest_time
+        self.rest_time = sight
 
     def step(self):
         # The agent's step will go here.
@@ -209,7 +209,7 @@ class PreyAgent(Agent):
 class HerdModel(Model):
     """A model with some number of food, creatures and predators."""
 
-    def __init__(self, n_creatures: int, n_pred: int, sight: int, rest_time: int, mr: int, width: int, height: int):
+    def __init__(self, n_creatures: int, n_pred: int, sight: int, mr: int, width: int, height: int):
         """
         n_creatures: number of creatures
         n_pred: number of predators
@@ -218,7 +218,6 @@ class HerdModel(Model):
         self.num_agents = n_creatures
         self.num_pred = n_pred
         self.sight = sight
-        self.rest_time = sight
         self.mr = mr
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
@@ -266,14 +265,14 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(0, self.num_pred):
-            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, rest_time=self.rest_time)
+            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-    def reproduce(self, max_child=10):
+    def reproduce(self, max_child=5):
         """
         function to generate the new population from the parent individuals both for prey and predators
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
@@ -333,14 +332,12 @@ class HerdModel(Model):
 
         self.schedule.step()
 
-        """ for a in self.schedule.agents:
-            if a.hp <= 0:
-                self.grid.remove_agent(a)
-                self.schedule.remove(a)"""
-        if len([agent for agent in self.schedule.agents if agent.type == "creature"]) <= 40:
+        n_creature = len(agent for agent in x.schedule.agents if agent.type == "creature")
+        if n_creature <= self.num_agents / 1.1:
             self.reproduce()
 
-        if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
+        if [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0] / n_creature == 0:
             self.running = False
+
 
         self.datacollector.collect(self)
