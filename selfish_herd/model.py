@@ -11,19 +11,19 @@ dist = lambda x, y: sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    #def __init__(self, unique_id, model, type="predator", sight=None):
-    def __init__(self, unique_id, model, sight, jump_range = 3, type="predator"):
+    def __init__(self, unique_id, model, sight, jump_range=3, type="predator"):
         """
         Predator Agent init function
         :param unique_id: a unique numeric identifier for the agent model
         :type unique_id: int
         :param model:  instance of the model that contains the agent
         :type model: mesa.model
-        :param type: identifier of the agent type, namely all the agents belonging to this class
-        :type type: str
         :param sight: maximum distance radio of interaction with other agents
         :type sight: int
-        # TODO JUMP
+        :param jump_range: maximum range within which predator can hunt a creature
+        :type jump_range: int
+        :param type: identifier of the agent type, namely all the agents belonging to this class
+        :type type: str
         """
 
         super().__init__(unique_id, model)
@@ -200,39 +200,59 @@ class PreyAgent(Agent):
         self.model.grid.move_agent(self, new_position)
 
     def panic(self, npredator, mov_vectorize):
+        """
+        Implementation of fear vector, namely the distance between the creature and the nearest predator.
 
-        # if there is at least one predator (np = True if len(np)>0)
+        :param npredator: positions (x and y coordinates) of all predators in the sight radius of the agent
+        :type npredator: tuple
+        :param mov_vectorize: compute the difference of the target coordinates
+        :type mov_vectorize: lambda function
+        """
+        # TODO CENTRE OF MASS OF PREDATORS
+        # se c'è più di un predator scappi da entrambi e non solo dal nearest
+
         if npredator:
-            # find the nearest predator using the euclidean distance
-            # key function specify how to compute the minimum (x is each element in np list)
             nearest_predator = min(npredator,
                                    key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            # print("nearest predator:", nearest_predator)
-
-            # return mov_vectorize(self.pos, [-x for x in nearest_predator])
             return mov_vectorize([x for x in nearest_predator], self.pos)
 
         return None
 
 
-# TODO think about adding rest time as hyperparameter
 class HerdModel(Model):
-    """A model with some number of food, creatures and predators."""
+    """
+    A model for simulation of the evolution.
+
+    :param Model: the model class for Mesa framework
+    :type Model: mesa.model
+    """
 
     def __init__(self, n_creatures: int, n_pred: int, sight: int, jump_range: int, mr: int, width: int, height: int):
         """
-        n_creatures: number of creatures
-        n_pred: number of predators
-        sight: sight of creatures and predators
+        HerdModel init function
+
+        :param n_creatures: total number of PreyAgents
+        :type n_creatures: int
+        :param n_pred: total number of PredatorAgents
+        :type n_pred: int
+        :param sight: maximum distance radio of interaction of Predators with Preys agents
+        :type sight: int
+        :param jump_range: maximum range within which predator can hunt a creature
+        :type jump_range: int
+        :param mr: mutation rate
+        :type mr: float
+        :param width, height: The mesa grid’s width and height
+        :type width, height: int
         """
+
         self.num_agents = n_creatures
         self.num_pred = n_pred
         self.sight = sight
         self.mr = mr
+        self.jump_range = jump_range
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
         self.current_id = 0
-        # self.grid = Grid(width, height, True)
 
         self.running = True
         self.datacollector = DataCollector(model_reporters={
@@ -243,38 +263,48 @@ class HerdModel(Model):
             "n_agents": lambda x: x.schedule.get_agent_count(),
             "Selfish gene frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                                                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
+                len([agent for agent in x.schedule.agents if agent.type == "creature"])
+                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
             "Fear frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] < 0]) /
-                                        len([agent for agent in x.schedule.agents if agent.type == "creature"])
-            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0
-        })  # ,
-        # agent_reporters={"Health": "hp"})
+                len([agent for agent in x.schedule.agents if agent.type == "creature"])
+                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
 
-        # Create agents
-        # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
-        # -1 encodes for "run", 1 encodes for "form a herd"
-        for i in range(self.num_agents // 2):
+        # TODO SISTEMARE IL DATA COLLECTOR
+        self.add_agents(n_creatures, n_pred)
+
+    def add_agents(self, num_agents, num_pred):
+        """
+        Add agents to the model. PreyAgents will be initialized with the same frequencies for -1 and 1 genotypes.
+
+        :param num_agents: total number of PreyAgents
+        :type num_agents: int
+        :param num_pred: total number of PredatorAgents
+        :type num_pred: int
+        """
+
+        # adding selfish PreyAgents (genotype = 1)
+        for i in range(num_agents // 2):
             genotype = [1]
-            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
+            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents // 2):
+        # adding non-selfish PreyAgents (genotype = -1)
+        for i in range(num_agents // 2):
             genotype = [-1]
-            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
+            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(0, self.num_pred):
-            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, jump_range = jump_range)
+        for i in range(0, num_pred):
+            a = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight, jump_range=self.jump_range)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -289,7 +319,16 @@ class HerdModel(Model):
         During the reproduction there is the chance of mutation
         """
 
-        # Prey reproduction
+        """
+        Function to generate the new population from the parent PreyAgents
+        1. Sample PreyAgents from current population and generate pairs of individuals
+        2. Create the new generation within a range, defining inherited genotype (mutation applied) and family ID
+        3. Remove all the "old" agents from the model
+        4. Add the new generation of agents to the model
+        """
+        # TODO PROBLEMI CON LA REPRODUCTION, PROVARE CON k=self.num_agents
+        # loro fanno il reproduce sopra
+        # 1
         preys = [agent for agent in self.schedule.agents if agent.type == "creature"]
         prey_agents = random.sample(preys, k=len(preys))
 
@@ -319,26 +358,9 @@ class HerdModel(Model):
             self.grid.remove_agent(agent1)
             self.grid.remove_agent(agent2)
 
-        """
-        # Predator reproduction
-        # non mi è chiaro se facciamo riprodurre anche loro oppure no ma in caso il codice è pronto
-        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "predator"],
-                                    k=self.schedule.get_agent_count())
-
-        for i in range(0, len(pred_agents) - 1, 2):
-            agent1 = pred_agents[i]
-            agent2 = pred_agents[i + 1]
-            n_child = random.randint(2, max_child)
-
-            for j in range(n_child):
-                child = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight)
-                self.schedule.add(child)
-
-            self.schedule.remove(agent1)
-            self.schedule.remove(agent2)"""
-
     def step(self):
         """Advance the model by one step."""
+
 
         self.schedule.step()
 
