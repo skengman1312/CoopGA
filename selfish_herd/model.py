@@ -166,6 +166,7 @@ class PreyAgent(Agent):
                  - positive genotype [0,1] -> the agent move in the direction of the center of mass
             1.2: the agents in the sight radius are all predators,
                  the agent runs away in the opposite direction wrt the nearest predator
+                 (if more than one predator, it moves in the opposite direction wrt the center of mass of the predators)
             1.3: the agents in the sight radius are creatures and predators,
                  the agent runs away in the opposite direction wrt the nearest predator
         Scenario 2 - no agents in the sight radius, random move
@@ -175,7 +176,9 @@ class PreyAgent(Agent):
         npredator = [x.pos for x in np if x.type == "predator"]
         nprey = [x.pos for x in np if x.type == "creature"]
 
-        fear_vect = self.panic(npredator)
+        fear_vect = None
+        if npredator:
+            fear_vect = self.panic(npredator)
 
         # Scenario 1
         if len(nprey) > 0 or fear_vect:
@@ -211,12 +214,9 @@ class PreyAgent(Agent):
         # TODO CENTRE OF MASS OF PREDATORS
         # se c'è più di un predator scappi da entrambi e non solo dal nearest
 
-        if npredator:
-            nearest_predator = min(npredator,
-                                   key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            return mov_vectorize([x for x in nearest_predator], self.pos)
-
-        return None
+        nearest_predator = min(npredator,
+                               key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+        return mov_vectorize([x for x in nearest_predator], self.pos)
 
 
 class HerdModel(Model):
@@ -263,12 +263,12 @@ class HerdModel(Model):
             "n_agents": lambda x: x.schedule.get_agent_count(),
             "Selfish gene frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
+                                        len([agent for agent in x.schedule.agents if agent.type == "creature"])
+            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
             "Fear frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] < 0]) /
-                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
+                                        len([agent for agent in x.schedule.agents if agent.type == "creature"])
+            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
 
         # TODO SISTEMARE IL DATA COLLECTOR
         self.add_agents(n_creatures, n_pred)
@@ -284,7 +284,7 @@ class HerdModel(Model):
         """
 
         # adding selfish PreyAgents (genotype = 1)
-        for i in range(num_agents // 2):
+        for i in range(0, num_agents // 2):
             a = PreyAgent(self.next_id(), self, genotype=[1], type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
@@ -293,7 +293,7 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         # adding non-selfish PreyAgents (genotype = -1)
-        for i in range(num_agents // 2):
+        for i in range(0, num_agents // 2):
             a = PreyAgent(self.next_id(), self, genotype=[-1], type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
@@ -322,7 +322,7 @@ class HerdModel(Model):
 
         # 1
         preys = [agent for agent in self.schedule.agents if agent.type == "creature"]
-        prey_agents = random.sample(preys, k=len(preys)//2)
+        prey_agents = random.sample(preys, k=len(preys) // 2)
 
         # 2
         for i in range(0, len(prey_agents) - 1, 2):
@@ -334,8 +334,8 @@ class HerdModel(Model):
                 gen1 = [agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0]]
 
                 # TODO MUTATION
-                #if random.random() < self.mr:  # random mutation
-                    #gen1[0] = round(random.uniform(-1, 1), 2)
+                if random.random() < self.mr:  # random mutation
+                    gen1[0] = round(random.uniform(-1, 1), 2)
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
 
@@ -367,6 +367,5 @@ class HerdModel(Model):
 
         """if len([a for a in self.schedule.agents if a.type == "creature" and a.genotype[0]]) / n_creature == 0: #selfish frequency == 0
             self.running = False"""
-
 
         self.datacollector.collect(self)

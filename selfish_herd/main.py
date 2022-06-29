@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('prova_0')
 from model import *
 from mesa.visualization.modules import CanvasGrid
@@ -6,9 +7,10 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 
-#prima prova di simulazione con visualzazione su server in tempo reale
 
-#regole molto semplici:
+# prima prova di simulazione con visualzazione su server in tempo reale
+
+# regole molto semplici:
 # 5hp di partenza; -1hp a step; +5hp per unità di cibo consumata
 # movimento di una casella a step per ogni creatura;
 # se c'è cibo nelle vicinanze il movimento sarà verso il cibo, altrimenti sarà randomico.
@@ -52,9 +54,10 @@ def agent_portrayal(agent):
 
     return portrayal
 
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #empty_model = FoodModel(10,10,10)
+    # empty_model = FoodModel(10,10,10)
 
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
     chart_0 = ChartModule([{"Label": "Selfish gene frequency", "Color": "Blue"},
@@ -65,14 +68,14 @@ if __name__ == '__main__':
                           data_collector_name='datacollector', canvas_height=100, canvas_width=200)
 
     server = ModularServer(HerdModel,
-                          [grid, chart_0, chart_1],
-                          "HerdModel",
-                          {"n_creatures": UserSettableParameter("slider", "Creature number", 50, 0, 200, 1),
-                           "n_pred": UserSettableParameter("slider", "Predator number", 5, 0, 20, 1),
-                           "sight": UserSettableParameter("slider", "Creature sight", 9, 0, 20, 1),
-                           "jump_range": UserSettableParameter("slider", "Jump_range", 3, 0, 5, 1),
-                           "mr": UserSettableParameter("slider", "Mutation rate", 0.01, 0, 1, 0.01),
-                           "width": 100, "height": 100})
+                           [grid, chart_0, chart_1],
+                           "HerdModel",
+                           {"n_creatures": UserSettableParameter("slider", "Creature number", 100, 0, 200, 1),
+                            "n_pred": UserSettableParameter("slider", "Predator number", 10, 0, 20, 1),
+                            "sight": UserSettableParameter("slider", "Creature sight", 9, 0, 20, 1),
+                            "jump_range": UserSettableParameter("slider", "Jump_range", 3, 0, 5, 1),
+                            "mr": UserSettableParameter("slider", "Mutation rate", 0.01, 0, 1, 0.01),
+                            "width": 100, "height": 100})
 
     server.port = 8521  # The default
     server.launch()
