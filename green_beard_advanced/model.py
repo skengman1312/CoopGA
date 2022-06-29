@@ -1,7 +1,6 @@
 import random
 from mesa import Agent, Model
 from mesa.datacollection import DataCollector
-from mesa.time import RandomActivation
 from mesa.time import BaseScheduler
 
 
@@ -9,14 +8,15 @@ class SocialActivation(BaseScheduler):
     """A scheduler which activates each agent once per step, in random order,
     with the order reshuffled every step but only activate the actors.
 
-    Assumes that all agents have a step(model) method.
+    :param BaseScheduler: activates agents one at a time, in the order they were added.
+    Assumes that each agent added has a step method which takes no arguments.
 
     """
 
     def step(self, actors) -> None:
-        """Executes the step of all agents, one at a time, in
+        """
+        Executes the step of all agents, one at a time, in
         random order.
-
         """
         for agent in self.agent_buffer(shuffled=True):
             if agent.unique_id in actors:
@@ -27,21 +27,44 @@ class SocialActivation(BaseScheduler):
 
 class BeardAgent(Agent):
     """
-    an agent to simulate the altruistic behaviour based on relatedness
+    Agent class to simulate Green Beard altruism
+
+    :param Agent: the agent class for Mesa framework
+    :type Agent: mesa.agent
     """
 
     def __init__(self, unique_id, model, genotype):
         """
+        Agent class to simulate Green Beard altruism
+
+        :param unique_id: a unique numeric identifier for the agent model
+        :type unique_id: int
+        :param model:  instance of the model that contains the agent
+        :type model: mesa.model
+        :param genotype: list composed of 2 binary representations (allele1, allele2)
+        :type genotype: list
+
         genotype: 1 gene with 2 alleles (a list of 2 integers)
-        allele1: 1 codes for altruism 0 for cowardice
-        allele2: 1 code for beard 0 for non beard
+            - allele1: 1 codes for altruism 0 for cowardice
+            - allele2: 1 code for beard 0 for non beard
         """
+
         super().__init__(unique_id, model)
         self.genotype = genotype
 
 
 def crossover(agent1, agent2):
+
     """
+    Implementation of crossover function, to apply a one point crossover to 2 agents
+
+    :param unique_id: a unique numeric identifier for the agent model
+    :type unique_id: int
+    :param model:  instance of the model that contains the agent
+    :type model: mesa.model
+    :param genotype: list composed of 2 binary representations (allele1, allele2)
+    :type genotype: list
+
     RECOMBINATION (CROSSOVER) one point
     """
     allele1 = agent1.genotype[0]
@@ -51,7 +74,7 @@ def crossover(agent1, agent2):
 
 class BeardModelAdv(Model):
     """
-    a model for simulation of the evolution of family related altruism
+    a model for simulation of the evolution of Green Beard Altruism
     """
 
     def __init__(self, N=2000, r=0.25, dr=0.95, mr=0.001, cr=0, linkage_dis=False):
