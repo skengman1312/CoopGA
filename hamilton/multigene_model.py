@@ -4,7 +4,7 @@ from model import *
  
 class MultigeneFamilyAgent(FamilyAgent):
     """
-    _summary_
+    Agent class to simulate altruistic behaviour based on relatedness where genotype contains two genes
 
     :param FamilyAgent: Agent class to simulate altruistic behaviour based on relatedness
     :type FamilyAgent: FamilyAgent
@@ -16,7 +16,9 @@ class MultigeneFamilyAgent(FamilyAgent):
 
     def altruistic_action(self):
         """
-        Implementation of a generic altruistic action
+        Implementation of a generic altruistic action. 
+        If the actor is altruist he sacrifices and the rest of the family survives (he also have a small
+        probability, 1-dr, to survive). If the actor is non-altruist he survives and the rest of the family not. 
         """
         if self.genotype[0] == 1: 
             if random.random() > self.model.dr:
@@ -33,7 +35,6 @@ class MultigeneFamilyModel(FamilyModel):
     Extension of the FamilyModel in order to deal with genotype with two genes
 
     :param FamilyModel: A model for simulation of the evolution of families. 
-    All families include all altruists members or all non-altruist members.
     :type FamilyModel: FamilyModel
     """
 

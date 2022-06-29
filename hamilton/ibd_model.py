@@ -7,12 +7,23 @@ from nx_script import IBDFamilyTree
 
 
 class IBDFamilyAgent(FamilyAgent):
+    """
+    Agent class to simulate altruistic behaviour based on relatedness which 
+    must be computed based on benefit due to different settings compared to before
+    (each interaction room will contain agents belonging to different families). 
+
+    :param FamilyAgent: _description_
+    :type FamilyAgent: _type_
+    """
 
     def altruistic_action(self):
         """
+        Implementation of a generic altruistic action. 
+        If the actor is altruist he can sacrifice or not. The choice is based on the benefit 
+        gained by performing the altruistic. The more the recipient is related to the actor
+        the higher the benefit. 
         The Actor has to calculate the Benefit = Sum_i(P_ibd(A, R_i)
         A = actor, R_i = ith recipient
-        :return:
         """
 
         A_index = self.model.active.index(self.unique_id)
@@ -21,23 +32,12 @@ class IBDFamilyAgent(FamilyAgent):
         pre = str(self.model.schedule.steps) + "#"
 
         if self.genotype:
-
-            # print("Actor ID", self.unique_id,
-            #       "\tID in G ", pre + str(self.unique_id),
-            #       "\t fam ID ", self.family)
-
-            # for a in A_room:
-            #     print(a.genotype, a.unique_id, a.family)
-
-            # calculating the benefit
+            # computing the benefit
             A_room.remove(self)
             b = sum([self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
                     pre + str(a.unique_id)) for a in A_room])
 
-            #print("total benefit ", b)
-
             if b > 1:
-                print("yo")
                 if random.random() > self.model.dr:
                     return
                 else:
@@ -49,7 +49,12 @@ class IBDFamilyAgent(FamilyAgent):
             [self.model.schedule.remove(a) for a in A_room if a.unique_id != self.unique_id]
 
 class IBDFamilyModel(FamilyModel):
-    pass
+    """
+    Extension of the FamilyModel in order to deal with different setting in the interaction rooms
+
+    :param FamilyModel: A model for simulation of the evolution of families. 
+    :type FamilyModel: FamilyModel
+    """
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """

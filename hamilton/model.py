@@ -63,7 +63,9 @@ class FamilyAgent(Agent):
 
     def altruistic_action(self):
         """
-        Implementation of a generic altruistic action
+        Implementation of a generic altruistic action. 
+        If the actor is altruist he sacrifices and the rest of the family survives (he also have a small
+        probability, 1-dr, to survive). If the actor is non-altruist he survives and the rest of the family not. 
         """
         if self.genotype:
             # 1 - death rate (dr) gives the probability for the altruistic agent to survive 
@@ -87,8 +89,7 @@ class FamilyModel(Model):
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
-        A model for simulation of the evolution of families. 
-        All families includes all altruists members or all non-altruist members.
+        A model for simulation of the evolution of families.
 
         :param N: total number of agents, defaults to 500
         :type N: int, optional
