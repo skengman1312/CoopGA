@@ -1,38 +1,66 @@
 import random
 import numpy as np
 from model import *
-
-
+ 
 class MultigeneFamilyAgent(FamilyAgent):
     """
-    :param genotype: list of [traint1, trait2]
+    _summary_
+
+    :param FamilyAgent: Agent class to simulate altruistic behaviour based on relatedness
+    :type FamilyAgent: FamilyAgent
+    :param genotype: list of [trait1, trait2]
+    
     trait1: binary gene, allele 1 codes for altruism allele 0 for cowardice
-    trait2: real number coded as bin, from 0 (ugly) to 1 (beautiful)
+    trait2: real number coded as bin, from 0 to 1 
     """
 
     def altruistic_action(self):
         """
         Implementation of a generic altruistic action
         """
-        if self.genotype[0] == 1:  # CHANGED HERE
-            # print("alt", self.genotype[0])
+        if self.genotype[0] == 1: 
             if random.random() > self.model.dr:
                 return
             else:
                 self.model.schedule.remove(self)
         else:
-            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer(
-            ) if a.family == self.family and a.unique_id != self.unique_id]
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() 
+            if a.family == self.family and a.unique_id != self.unique_id]
 
 
 class MultigeneFamilyModel(FamilyModel):
     """
+    Extension of the FamilyModel in order to deal with genotype with two genes
+
+    :param FamilyModel: A model for simulation of the evolution of families. 
+    All families include all altruists members or all non-altruist members.
+    :type FamilyModel: FamilyModel
     """
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
+        """
+        Extension of the FamilyModel in order to deal with genotype with two genes
+
+        :param N: total number of agents, defaults to 500
+        :type N: int, optional
+        :param r: initial ratio of altruistic allele, defaults to 0.5
+        :type r: float, optional
+        :param dr: death rate for sacrificing altruist, defaults to 0.95
+        :type dr: float, optional
+        :param mr: mutation rate, defaults to 0.001
+        :type mr: float, optional
+        """
+        
+        # Defining stddev and mean of first mode for the bimodal fitness landscape for trait2. 
+        # Mean of second mode is computed randomly later. 
         self.mean = 0.5
+        self.sd = 0.1
+
+        # Setting the conversion from float to binary 
         self.handler = FloatBinHandler(3, 1)
+    
         super().__init__(N=N, r=r, dr=dr, mr=mr)
+    
         self.datacollector = DataCollector(model_reporters={
             "altruistic fraction": lambda x: len(
                 [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
@@ -48,48 +76,49 @@ class MultigeneFamilyModel(FamilyModel):
         })
 
     def add_agents(self, N, r):
+        """
+        Add agents to the model with the right proportion (r) of altruistic allele
+
+        :param N: total number of agents
+        :type N: int
+        :param r: initial ratio of altruistic allele
+        :type r: float
+        """
+        # adding altruist agents (genotype[0] = 1)
         for i in range(int(N * r)):
             trait2 = self.handler.float2bin(random.random())
             agent = MultigeneFamilyAgent(i, self, [1, trait2], i)
             self.schedule.add(agent)
 
+        # adding non-altruist agents (genotype[0] = 0)
         for i in range(int(N * r), N):
             trait2 = self.handler.float2bin(random.random())
             agent = MultigeneFamilyAgent(i, self, [0, trait2], i)
             self.schedule.add(agent)
 
-    def reproductive_fitness(self, agent):
-        if self.schedule.steps % 100 == 0:
-            self.mean = random.random()
-        phenotype = self.handler.bin2float(agent.genotype[1])
-        sd = 0.1
-        return np.exp(-((phenotype - self.mean) / sd) ** 2)
-        # (np.pi * sd) * np.exp(-0.5 * ((phenotype - mean) / sd)**2)  #  phenotype +0.000001
-
-
     def reproductive_fitness_multimodal(self, agent):
-        #
-        # if self.schedule.steps % 100 == 0:
-        #     n1, n2 = False, False
-        #     self.mean1 = random.random()
-        #     if self.mean1 - 0.2 > 0:
-        #         n1 = random.uniform(0, self.mean1 - 0.2)
-        #     else:
-        #         self.mean2 = random.uniform(self.mean1 + 0.2, 1)
-        #
-        #     if self.mean1 + 0.2 < 1:
-        #         n2 = random.uniform(self.mean1 + 0.2, 1)
-        #     else:
-        #         self.mean2 = random.uniform(self.mean1 - 0.2, 1)
-        #
-        #     if n1 and n2:
-        #         self.mean2 = random.choice([n1, n2])
+        """
+        Computing fitness based on trait2 of genotype only. Fitness landscape is a bimodal.
+        Minimum fitness is 0 and maximum fitness is 1. 
 
+        :param agent: a model agent
+        :type agent: MultigeneFamilyAgent
+        :return: fitness of trait2
+        :rtype: float
+        """
         phenotype = self.handler.bin2float(agent.genotype[1])
-        sd = 0.1
-        return max(np.exp(-((phenotype - self.mean[0]) / sd) ** 2), np.exp(-((phenotype - self.mean[1]) / sd) ** 2))
+        
+        return max(np.exp(-((phenotype - self.mean[0]) / self.sd) ** 2), 
+                   np.exp(-((phenotype - self.mean[1]) / self.sd) ** 2))
 
     def update_fitness(self):
+        """
+        Change the means of the bimodal fitness landscape in order to simulate dynamic environment.
+        We impose distance from the two means to be at least 0.2 
+
+        :return: new updated means of the bimodal fitness landscape of trait2
+        :rtype: list
+        """
         m1 = random.random()
         if m1 < 0.2:
             m2 = random.uniform(m1 + 0.2, 1)
@@ -100,6 +129,17 @@ class MultigeneFamilyModel(FamilyModel):
         return [m1, m2]
 
     def trait2_computation(self, parent1, parent2):
+        """
+        Inheritance of trait2, based on on trait2 of both parents. Thanks to binary representation 
+        we can easily perform both crossover and mutation
+
+        :param parent1: first agent of the couple generating offspring
+        :type parent1: MultigeneFamilyAgent
+        :param parent2: second agent of the couple generating offspring
+        :type parent2: MultigeneFamilyAgent
+        :return: trait2 of the offspring
+        :rtype: str
+        """
         # crossover
         gene_offspring = ''
         for p1, p2 in zip(parent1.genotype[1], parent2.genotype[1]):
@@ -115,19 +155,25 @@ class MultigeneFamilyModel(FamilyModel):
 
     def reproduce(self):
         """
-        function to generate the new population from the parent individuals
+        Function to generate the new population from the parent individuals
+        1. Sample N individuals from current population
+        2. Generate pairs of inidividuals
+        3. Create the new generation, defining inherited genotype (mutation applied) and family ID
+        4. Remove all the "old" agents from the model
+        5. Add the new generation of agents to the model
         """
+        # in first and every 100 steps we change the fitness landscape to simulate dynamic environment
         if self.schedule.steps % 100 == 0:
             self.mean = self.update_fitness()
-        total_rep_fitness = np.array(
-            [self.reproductive_fitness_multimodal(a) for a in self.schedule.agents])
+        
+        total_rep_fitness = np.array([self.reproductive_fitness_multimodal(a) for a in self.schedule.agents])
         total_rep_fitness /= total_rep_fitness.sum()
-        mating_ind = np.random.choice(
-            self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
+        
+        # based on the fitness of trait2 we assign more or less probability to reproduce to each agent
+        mating_ind = np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
+        
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
-
-        # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
 
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": [mutate(random.choice([a.genotype[0] for a in p])),
@@ -135,43 +181,12 @@ class MultigeneFamilyModel(FamilyModel):
                    "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
 
         [self.schedule.remove(a) for a in self.schedule.agent_buffer()]
-        [self.schedule.add(MultigeneFamilyAgent(
-            i, self, newgen[i]["genotype"], newgen[i]["family"])) for i in range(len(newgen))]
+        [self.schedule.add(MultigeneFamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) 
+        for i in range(len(newgen))]
 
 
 if __name__ == "__main__":
     model = MultigeneFamilyModel(N=1000, mr=0.001, r=0.5)
-    # model = FamilyModel()
-
-    # print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer()
-    #                                         if a.genotype[0] == 1]) / model.schedule.get_agent_count())
-    #
-    # early_rep_fitness = [model.reproductive_fitness_multimodal(
-    #     a) for a in model.schedule.agents]
-    # print(model.mean1, model.mean2)
     for i in range(100):
         model.step()
-    #
-    # print(model.mean1, model.mean2)
-    print(model.mean)
-    print("\ngen1\tgen2\tfitness")
-
-    for a in model.schedule.agents:
-        print(a.genotype[0], "\t", model.handler.bin2float(a.genotype[1]),
-              "\t", model.reproductive_fitness_multimodal(a))
-
-    finalpop_trait2 = [a.genotype[1] for a in model.schedule.agent_buffer()]
-    final_rep_fitness = [model.handler.bin2float(
-         a.genotype[1]) for a in model.schedule.agent_buffer()]
-    #
-    counts = {f: final_rep_fitness.count(f) for f in set(final_rep_fitness)}
-    counts = {k: counts[k] for k in sorted(counts, reverse=True)}
-    print(counts)
-    #print(max(early_rep_fitness))
-    print(max(final_rep_fitness))
-
-    # print([model.handler.bin2float(t) for t in finalpop_trait2])
-
-    # print(model.mean)
-
-    print("yee<")
+    

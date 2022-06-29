@@ -79,7 +79,7 @@ class FamilyAgent(Agent):
 class FamilyModel(Model):
     """
     A model for simulation of the evolution of families. 
-    All families includes all altruists members or all non-altruist members.
+    All families include all altruists members or all non-altruist members.
 
     :param Model: the model class for Mesa framework
     :type Model: mesa.model
@@ -94,7 +94,7 @@ class FamilyModel(Model):
         :type N: int, optional
         :param r: initial ratio of altruistic allele, defaults to 0.5
         :type r: float, optional
-        :param dr: death rate, defaults to 0.95
+        :param dr: death rate for sacrificing altruist, defaults to 0.95
         :type dr: float, optional
         :param mr: mutation rate, defaults to 0.001 
         :type mr: float, optional
@@ -114,8 +114,7 @@ class FamilyModel(Model):
 
     def add_agents(self, N, r):
         """
-        Add agents to the model with the 
-        right proportion (r) of altruistic allele
+        Add agents to the model with the right proportion (r) of altruistic allele
 
         :param N: total number of agents
         :type N: int

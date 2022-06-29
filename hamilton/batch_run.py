@@ -25,5 +25,3 @@ if __name__ == '__main__':
     print(results_df)
     results_df.to_csv("./data/result.csv")
 
-
-#prova
