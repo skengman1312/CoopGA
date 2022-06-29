@@ -127,7 +127,7 @@ class FamilyModel(Model):
             agent = FamilyAgent(i, self, 1, i)
             self.schedule.add(agent)
 
-        # adding non-altruist agents (genotype = 1)
+        # adding non-altruist agents (genotype = 0)
         for i in range(int(N * r), N):
             agent = FamilyAgent(i, self, 0, i)
             self.schedule.add(agent)

@@ -167,21 +167,24 @@ class MultigeneFamilyModel(FamilyModel):
         if self.schedule.steps % 100 == 0:
             self.mean = self.update_fitness()
         
+        # 1
         total_rep_fitness = np.array([self.reproductive_fitness_multimodal(a) for a in self.schedule.agents])
         total_rep_fitness /= total_rep_fitness.sum()
         
         # based on the fitness of trait2 we assign more or less probability to reproduce to each agent
         mating_ind = np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
         
+        # 2
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
-
+        # 3
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": [mutate(random.choice([a.genotype[0] for a in p])),
                                 self.trait2_computation(p[0], p[1])],
                    "family": p[0].unique_id} for p in mating_pairs for i in range(3)]
-
+        # 4
         [self.schedule.remove(a) for a in self.schedule.agent_buffer()]
+        # 5
         [self.schedule.add(MultigeneFamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) 
         for i in range(len(newgen))]
 
