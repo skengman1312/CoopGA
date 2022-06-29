@@ -1,43 +1,35 @@
-import sys
-
-sys.path.append('prova_0')
 from model import *
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 
-
-# prima prova di simulazione con visualzazione su server in tempo reale
-
-# regole molto semplici:
-# 5hp di partenza; -1hp a step; +5hp per unità di cibo consumata
-# movimento di una casella a step per ogni creatura;
-# se c'è cibo nelle vicinanze il movimento sarà verso il cibo, altrimenti sarà randomico.
-# se gli hp scendono a 0 la creatura è eliminata
-# il numero di cibo è costante
+"""
+Visual simulation test on server in real time following the HerbModel described in model.py
+PreyAgents are coloured according to the genotype (blu if >= 0, green otherwise)
+PredatorAgents are coloured in red
+"""
 
 # TODO plots in interface starts from zero, resolve this problem
+
 
 def agent_portrayal(agent):
     if agent.type == "creature":
         if agent.genotype[0] >= 0:
-            portrayal = {"Shape": "rect",
+            portrayal = {"Shape": "circle",
                          "Color": "blue",
                          "Filled": "true",
                          "Layer": 0,
-                         "w": 0.5,
-                         "h": 0.5}
+                         "r": 1}
         else:
-            portrayal = {"Shape": "rect",
+            portrayal = {"Shape": "circle",
                          "Color": "green",
                          "Filled": "true",
                          "Layer": 0,
-                         "w": 0.5,
-                         "h": 0.5}
+                         "r": 1}
 
-    elif agent.type == "predator":
-
+    else:
+        # agent.type == "predator"
         portrayal = {"Shape": "rect",
                      "Color": "red",
                      "Filled": "true",
@@ -45,24 +37,15 @@ def agent_portrayal(agent):
                      "w": 0.9,
                      "h": 0.9}
 
-    else:
-        portrayal = {"Shape": "circle",
-                     "Color": "green",
-                     "Filled": "true",
-                     "Layer": 1,
-                     "r": 0.5}
-
     return portrayal
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # empty_model = FoodModel(10,10,10)
-
     grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
     chart_0 = ChartModule([{"Label": "Selfish gene frequency", "Color": "Blue"},
                            {"Label": "Fear frequency", "Color": "Green"}],
                           data_collector_name='datacollector', canvas_height=100, canvas_width=200)
+
     chart_1 = ChartModule([{"Label": "Number of creatures", "Color": "Blue"},
                            {"Label": "Number of predators", "Color": "Red"}],
                           data_collector_name='datacollector', canvas_height=100, canvas_width=200)
@@ -79,5 +62,3 @@ if __name__ == '__main__':
 
     server.port = 8521  # The default
     server.launch()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
