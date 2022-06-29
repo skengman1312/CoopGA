@@ -60,7 +60,7 @@ def get_param_ID(data, params=["n_creatures", "n_pred", "sight", "mr"]):
     return data
 
 
-def multi_plot_prevalence(data, params=["n_creatures", "n_pred", "sight", "mr"]):
+def multi_plot_prevalence(data, params=["n_creatures", "n_pred", "sight", "jump_range", "mr"]):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
