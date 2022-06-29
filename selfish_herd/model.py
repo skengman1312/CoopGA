@@ -249,6 +249,7 @@ class HerdModel(Model):
         self.num_pred = n_pred
         self.sight = sight
         self.mr = mr
+        self.jump_range = jump_range
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
         self.current_id = 0
@@ -281,21 +282,21 @@ class HerdModel(Model):
         :param num_pred: total number of PredatorAgents
         :type num_pred: int
         """
-        # Create agents
-        # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
-        # -1 encodes for "run", 1 encodes for "form a herd"
+
+        # adding selfish PreyAgents (genotype = 1)
         for i in range(num_agents // 2):
             genotype = [1]
-            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
+            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
+        # adding non-selfish PreyAgents (genotype = -1)
         for i in range(num_agents // 2):
             genotype = [-1]
-            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
+            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -303,7 +304,7 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(0, num_pred):
-            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, jump_range = jump_range)
+            a = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight, jump_range=self.jump_range)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -318,7 +319,16 @@ class HerdModel(Model):
         During the reproduction there is the chance of mutation
         """
 
-        # Prey reproduction
+        """
+        Function to generate the new population from the parent PreyAgents
+        1. Sample PreyAgents from current population and generate pairs of individuals
+        2. Create the new generation within a range, defining inherited genotype (mutation applied) and family ID
+        3. Remove all the "old" agents from the model
+        4. Add the new generation of agents to the model
+        """
+        # TODO PROBLEMI CON LA REPRODUCTION, PROVARE CON k=self.num_agents
+        # loro fanno il reproduce sopra
+        # 1
         preys = [agent for agent in self.schedule.agents if agent.type == "creature"]
         prey_agents = random.sample(preys, k=len(preys))
 
@@ -347,24 +357,6 @@ class HerdModel(Model):
             self.schedule.remove(agent2)
             self.grid.remove_agent(agent1)
             self.grid.remove_agent(agent2)
-
-        """
-        # Predator reproduction
-        # non mi è chiaro se facciamo riprodurre anche loro oppure no ma in caso il codice è pronto
-        pred_agents = random.sample([agent for agent in self.schedule.agents if agent.type == "predator"],
-                                    k=self.schedule.get_agent_count())
-
-        for i in range(0, len(pred_agents) - 1, 2):
-            agent1 = pred_agents[i]
-            agent2 = pred_agents[i + 1]
-            n_child = random.randint(2, max_child)
-
-            for j in range(n_child):
-                child = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight)
-                self.schedule.add(child)
-
-            self.schedule.remove(agent1)
-            self.schedule.remove(agent2)"""
 
     def step(self):
         """Advance the model by one step."""
