@@ -272,7 +272,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-    def reproduce(self, max_child=10):
+    def reproduce(self, max_child=5):
         """
         function to generate the new population from the parent individuals both for prey and predators
         select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
@@ -332,14 +332,12 @@ class HerdModel(Model):
 
         self.schedule.step()
 
-        """ for a in self.schedule.agents:
-            if a.hp <= 0:
-                self.grid.remove_agent(a)
-                self.schedule.remove(a)"""
-        if len([agent for agent in self.schedule.agents if agent.type == "creature"]) <= 40:
+        n_creature = len(agent for agent in x.schedule.agents if agent.type == "creature")
+        if n_creature <= self.num_agents / 1.1:
             self.reproduce()
 
-        if not [agent for agent in self.schedule.agents if agent.type == "creature"]:
+        if [a for a in self.schedule.agents if a.type == "creature" and a.genotype[0] >= 0] / n_creature == 0:
             self.running = False
+
 
         self.datacollector.collect(self)
