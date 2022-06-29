@@ -1,34 +1,31 @@
 import random
-from typing import List, Any
-
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
-from mesa.space import Grid
 from mesa.datacollection import DataCollector
 from math import sqrt
-from mesa.time import BaseScheduler
 
 dist = lambda x, y: sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
-
-
-def predator_food_stat(model):
-    """
-    collects data about predator mean food
-    """
-    agent_food = [agent.hp for agent in model.schedule.agents if agent.type == "predator"]
-    if len(agent_food) > 0:
-        return sum(agent_food) / len(agent_food)
 
 
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
+    #def __init__(self, unique_id, model, type="predator", sight=None):
     def __init__(self, unique_id, model, sight, jump_range = 3, type="predator"):
         """
-        Food Agent init function
-        Type can be either food, creature or predator
+        Predator Agent init function
+        :param unique_id: a unique numeric identifier for the agent model
+        :type unique_id: int
+        :param model:  instance of the model that contains the agent
+        :type model: mesa.model
+        :param type: identifier of the agent type, namely all the agents belonging to this class
+        :type type: str
+        :param sight: maximum distance radio of interaction with other agents
+        :type sight: int
+        # TODO JUMP
         """
+
         super().__init__(unique_id, model)
         self.hp = 0
         self.type = type
@@ -37,8 +34,11 @@ class PredatorAgent(Agent):
         self.jump_range = jump_range
 
     def step(self):
-        # The agent's step will go here.
-        # For demonstration purposes we will print the agent's unique_id
+        """
+        A single step of the agent which consists in moving or resting based on hp.
+        hp keeps track of the steps between the current one and the one in which the agent ate a prey.
+        """
+
         if self.hp == 0:
             self.move()
         else:
@@ -46,25 +46,29 @@ class PredatorAgent(Agent):
 
     def move(self):
         """
-        function to move creatures and predators
+        Implementation of agent move according to distance and possible interaction with other agents.
+        Scenario 1 - at least one creature in the sight radius
+            1.1: the nearest creature is in the jump_range, the agent hunts it
+            1.2: the nearest creature is not in the jump_range, the agent chases it
+        Scenario 2 - no creatures in the sight radius, random move
         """
+
         mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
 
-        all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
-                                                              include_center=False)  # all the cells at dist = 1
+        all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
 
         nb = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
-        # print(nb)
         nb = [x.pos for x in nb if x.type == "creature"]
-        # consider only the "creature" agents as possible food
-        # food ad distance r = sight, we may optimize it
 
+        # Scenario 1
         if nb:
             nearest_prey = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
             if dist(nearest_prey, self.pos) < self.jump_range:
-                self.hunt(nearest_prey)
-            else:  # follow the prey
+                self.hunt(nearest_prey, all_possible_steps)
+
+            else:
+
                 move_vector = mov_vectorize(self.pos, nearest_prey)
                 vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vector)]
                 if possible_steps:
@@ -72,15 +76,20 @@ class PredatorAgent(Agent):
                         ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
                     self.model.grid.move_agent(self, new_position)
 
-            # self.model.schedule.remove(nearest_pray)
-            # self.grid.remove_agent(nearest_pray)
+        # Scenario 2
         else:
             new_position = self.random.choice(possible_steps)
             self.model.grid.move_agent(self, new_position)
 
+    # TODO CHASING FUNCTION
+    def chase(self):
+        """
+        Implementation of agent chasing action.
+        """
+
     def eat(self):
         """
-        function to eat if there is something at hand
+        Implementation of agent eating action.
         """
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         for a in cellmates:
@@ -90,104 +99,104 @@ class PredatorAgent(Agent):
                 self.hp = self.rest_time
                 break
 
-    def hunt(self, nf):
+    def hunt(self, np, possible_steps):
+        """
+        Implementation of agent hunting action.
 
-        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=4)
-        # all the cells at dist = 1
+        :param np: position of the nearest creature, namely x and y coordinates
+        :type np: tuple
+        :param possible_steps: all possible cells in which the agent can move defined by x and y coordinates
+        :type np: tuple
+        """
 
-        new_position = min(possible_steps, key=lambda x: sqrt(((nf[0] - x[0]) ** 2) + ((nf[1] - x[1]) ** 2)))
-        # self.hp -= 0.5 * dist(self.pos, nf)
+        new_position = min(possible_steps, key=lambda x: sqrt(((np[0] - x[0]) ** 2) + ((np[1] - x[1]) ** 2)))
         self.model.grid.move_agent(self, new_position)
         self.eat()
 
 
 class PreyAgent(Agent):
-    """
-    Agent model with fear running from pred
-    """
+    """A Prey Agent."""
 
     def __init__(self, unique_id, model, genotype: list, type="creature", sight=None):
         """
-        Food Agent init function
-        Type can be either food, creature or predator
+        Prey Agent init function
+
+        :param unique_id: a unique numeric identifier for the agent model
+        :type unique_id: int
+        :param model:  instance of the model that contains the agent
+        :type model: mesa.model
+        :param genotype: representation of single-gene genotype in [-1,1] (-1: non-selfish, 1: selfish)
+        :type genotype: list
+        :param type: identifier of the agent type, namely all the agents belonging to this class
+        :type type: str
+        :param sight: maximum distance radio of interaction with other agents
+        :type sight: int
         """
+
         super().__init__(unique_id, model)
         self.genotype = genotype
         self.type = type
         self.sight = sight
 
     def step(self):
-        # The agent's step will go here.
-        # For demonstration purposes we will print the agent's unique_id
-        self.move()
-
-    def move(self):
         """
-        function to move creatures
-        if a predator:
-            - move toward the nearest creature (vector weighted by the genotype)
-            - if no creature, move in the opposite direction wrt the predator
-        if no predator, random move
+        A single step of the agent which consists in moving.
+        The agent moves only if there is at least one empty cell in neighbour cells.
         """
-        all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True,
-                                                              include_center=False)  # all the cells at dist = 1
-
+        all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
 
-        # print("self.position:", self.pos)
+        if possible_steps:
+            self.move(possible_steps)
+
+    def move(self, possible_steps):
+        """
+        Implementation of agent move according to distance and possible interaction with other agents.
+
+        :param possible_steps: all possible cells in which the agent can move defined by x and y coordinates
+        :type np: tuple
+
+        Scenario 1 - at least one agent in the sight radius
+            1.1: the agents in the sight radius are all creatures,
+                 the agent moves according to the center of mass of the others agents weighted by the genotype
+                 - negative genotype [-1,0[ -> the agent move in the opposite direction wrt the center of mass
+                 - positive genotype [0,1] -> the agent move in the direction of the center of mass
+            1.2: the agents in the sight radius are all predators,
+                 the agent runs away in the opposite direction wrt the nearest predator
+            1.3: the agents in the sight radius are creatures and predators,
+                 the agent runs away in the opposite direction wrt the nearest predator
+        Scenario 2 - no agents in the sight radius, random move
+        """
 
         np = self.model.grid.get_neighbors(self.pos, moore=True, include_center=False, radius=self.sight)
         npredator = [x.pos for x in np if x.type == "predator"]
         nprey = [x.pos for x in np if x.type == "creature"]
 
         mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-        # print("move_vectorize", mov_vectorize)
+        fear_vect = self.panic(npredator, mov_vectorize)
 
-        if possible_steps:
+        # Scenario 1
+        if len(nprey) > 0 or fear_vect:
+            move_vect = None
 
-            fear_vect = self.panic(npredator, mov_vectorize)
-            # print("fear vector:", fear_vect)
-            # print(len(nprey))
-            # print("fear vector:", fear_vect)
-            # print(len(nprey))
-            if len(nprey) > 0 or fear_vect:
+            if len(nprey) > 0:
+                prey_cm_x = sum(x[0] for x in nprey) / len(nprey)
+                prey_cm_y = sum(y[1] for y in nprey) / len(nprey)
+                cm_vect = [prey_cm_x, prey_cm_y]
+                move_vect = mov_vectorize(self.pos, cm_vect)
+                move_vect = [round(self.genotype[0] * x, 2) for x in move_vect]
 
-                # add the contribution of both the nearest creature and the nearest predator
-                move_vect = None
+            if fear_vect:
+                move_vect = fear_vect
 
-                # TODO GENOTYPE
+            vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
+            new_position = min(possible_steps, key=lambda x: sqrt(
+                ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
 
-                if len(nprey) > 0:
-                    nearest_prey = min(nprey,
-                                       key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-                    prey_cm_x = sum(x[0] for x in nprey) / len(nprey)
-                    prey_cm_y = sum(y[1] for y in nprey) / len(nprey)
-                    cm_vect = [prey_cm_x, prey_cm_y]
-                    # print("nearest prey", nearest_prey)
-                    move_vect = mov_vectorize(self.pos, cm_vect)
-                    # move_vect = mov_vectorize(self.pos, nearest_prey)
-                    # print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}", f"Genotype: {self.genotype}")
-                    move_vect = [round(self.genotype[0] * x, 2) for x in move_vect]
-                    # print("move vect", move_vect)
-
-                if fear_vect:
-                    # print("fear vector:", fear_vect)
-                    #move_vect = mov_vectorize(fear_vect,
-                                              #move_vect) if move_vect else fear_vect  # sum prod fear + move -> scappa
-                    move_vect = fear_vect
-                    # print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
-
-                vect_landing: list[Any] = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
-                new_position = min(possible_steps, key=lambda x: sqrt(
-                    ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
-
-            else:
-                new_position = self.random.choice(possible_steps)
-
+        # Scenario 2
         else:
-            new_position = self.pos
+            new_position = self.random.choice(possible_steps)
 
-        # print("new position", new_position)
         self.model.grid.move_agent(self, new_position)
 
     def panic(self, npredator, mov_vectorize):
@@ -227,7 +236,6 @@ class HerdModel(Model):
 
         self.running = True
         self.datacollector = DataCollector(model_reporters={
-            "Mean predator food": predator_food_stat,
             "Number of creatures": lambda x: len(
                 [agent for agent in x.schedule.agents if agent.type == "creature"]),
             "Number of predators": lambda x: len(
@@ -294,8 +302,9 @@ class HerdModel(Model):
                 gen1 = []
                 gen1.append(agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0])
 
-                """if random.random() < self.mr:  # random mutation
-                    gen1[0] = round(random.uniform(-1, 1), 2)"""
+                # TODO MUTATION
+                #if random.random() < self.mr:  # random mutation
+                    #gen1[0] = round(random.uniform(-1, 1), 2)
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
 
