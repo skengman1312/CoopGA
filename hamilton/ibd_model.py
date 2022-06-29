@@ -55,7 +55,7 @@ class IBDFamilyModel(FamilyModel):
     :type FamilyModel: FamilyModel
     """
 
-    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
+    def __init__(self, N=500, r=0.5, dr=0.9, mr=0.001):
         """
         Extension of the FamilyModel in order to deal with different setting in the interaction rooms.
 
@@ -138,7 +138,7 @@ class IBDFamilyModel(FamilyModel):
         """
         
         # even in the worst case scenario at least N individuals survive so we can have all rooms as dangerous
-        self.rooms = np.random.choice(self.schedule.agents, (len(self.schedule.agents) // 10, 10), replace=False).tolist()
+        self.rooms = np.random.choice(self.schedule.agents, (len(self.schedule.agents) // 5, 5), replace=False).tolist()
 
         self.active = [random.choice(r).unique_id for r in self.rooms]
 
@@ -150,7 +150,7 @@ class IBDFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N=200, mr=0.001, r=0.5)
+    model = IBDFamilyModel(N=100, mr=0.001, r=0.5)
     print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
     for i in range(50):
         print(f">>>Step n{i}<<<")
