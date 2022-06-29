@@ -270,11 +270,21 @@ class HerdModel(Model):
                 if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
 
         # TODO SISTEMARE IL DATA COLLECTOR
+        self.add_agents(n_creatures, n_pred)
 
+    def add_agents(self, num_agents, num_pred):
+        """
+        Add agents to the model. PreyAgents will be initialized with the same frequencies for -1 and 1 genotypes.
+
+        :param num_agents: total number of PreyAgents
+        :type num_agents: int
+        :param num_pred: total number of PredatorAgents
+        :type num_pred: int
+        """
         # Create agents
         # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
         # -1 encodes for "run", 1 encodes for "form a herd"
-        for i in range(self.num_agents // 2):
+        for i in range(num_agents // 2):
             genotype = [1]
             a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
@@ -283,7 +293,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(self.num_agents // 2):
+        for i in range(num_agents // 2):
             genotype = [-1]
             a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=sight)
             self.schedule.add(a)
@@ -292,7 +302,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        for i in range(0, self.num_pred):
+        for i in range(0, num_pred):
             a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, jump_range = jump_range)
             self.schedule.add(a)
             # Add the agent to a random grid cell
@@ -358,6 +368,7 @@ class HerdModel(Model):
 
     def step(self):
         """Advance the model by one step."""
+
 
         self.schedule.step()
 
