@@ -1,1 +1,6 @@
 Mesa~=0.9.0
+pandas~=1.4.2
+numpy~=1.22.3
+networkx~=2.8
+igraph~=0.9.11
+matplotlib~=3.5.2

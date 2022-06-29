@@ -1,7 +1,8 @@
 import random
 import numpy as np
 from model import *
- 
+
+
 class MultigeneFamilyAgent(FamilyAgent):
     """
     Agent class to simulate altruistic behaviour based on relatedness where genotype contains two genes
@@ -20,14 +21,14 @@ class MultigeneFamilyAgent(FamilyAgent):
         If the actor is altruist he sacrifices and the rest of the family survives (he also have a small
         probability, 1-dr, to survive). If the actor is non-altruist he survives and the rest of the family not. 
         """
-        if self.genotype[0] == 1: 
+        if self.genotype[0] == 1:
             if random.random() > self.model.dr:
                 return
             else:
                 self.model.schedule.remove(self)
         else:
-            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer() 
-            if a.family == self.family and a.unique_id != self.unique_id]
+            [self.model.schedule.remove(a) for a in self.model.schedule.agent_buffer()
+             if a.family == self.family and a.unique_id != self.unique_id]
 
 
 class MultigeneFamilyModel(FamilyModel):
@@ -51,7 +52,7 @@ class MultigeneFamilyModel(FamilyModel):
         :param mr: mutation rate, defaults to 0.001
         :type mr: float, optional
         """
-        
+
         # Defining stddev and mean of first mode for the bimodal fitness landscape for trait2. 
         # Mean of second mode is computed randomly later. 
         self.mean = 0.5
@@ -59,9 +60,9 @@ class MultigeneFamilyModel(FamilyModel):
 
         # Setting the conversion from float to binary 
         self.handler = FloatBinHandler(3, 1)
-    
+
         super().__init__(N=N, r=r, dr=dr, mr=mr)
-    
+
         self.datacollector = DataCollector(model_reporters={
             "altruistic fraction": lambda x: len(
                 [a for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / x.schedule.get_agent_count(),
@@ -69,9 +70,11 @@ class MultigeneFamilyModel(FamilyModel):
                 [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]),
             "max rep": lambda x: max([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]),
             "min rep": lambda x: min([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer()]),
-            "mean rep1": lambda x: sum([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
+            "mean rep1": lambda x: sum(
+                [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]) / len(
                 [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 1]),
-            "mean rep0": lambda x: sum([x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
+            "mean rep0": lambda x: sum(
+                [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0]) / len(
                 [x.reproductive_fitness_multimodal(a) for a in x.schedule.agent_buffer() if a.genotype[0] == 0])
 
         })
@@ -108,8 +111,8 @@ class MultigeneFamilyModel(FamilyModel):
         :rtype: float
         """
         phenotype = self.handler.bin2float(agent.genotype[1])
-        
-        return max(np.exp(-((phenotype - self.mean[0]) / self.sd) ** 2), 
+
+        return max(np.exp(-((phenotype - self.mean[0]) / self.sd) ** 2),
                    np.exp(-((phenotype - self.mean[1]) / self.sd) ** 2))
 
     def update_fitness(self):
@@ -166,14 +169,14 @@ class MultigeneFamilyModel(FamilyModel):
         # in first and every 100 steps we change the fitness landscape to simulate dynamic environment
         if self.schedule.steps % 100 == 0:
             self.mean = self.update_fitness()
-        
+
         # 1
         total_rep_fitness = np.array([self.reproductive_fitness_multimodal(a) for a in self.schedule.agents])
         total_rep_fitness /= total_rep_fitness.sum()
-        
+
         # based on the fitness of trait2 we assign more or less probability to reproduce to each agent
         mating_ind = np.random.choice(self.schedule.agents, self.N, replace=False, p=total_rep_fitness)
-        
+
         # 2
         mating_pairs = [(mating_ind[i], mating_ind[i + len(mating_ind) // 2])
                         for i in range(len(mating_ind) // 2)]
@@ -185,12 +188,11 @@ class MultigeneFamilyModel(FamilyModel):
         # 4
         [self.schedule.remove(a) for a in self.schedule.agent_buffer()]
         # 5
-        [self.schedule.add(MultigeneFamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"])) 
-        for i in range(len(newgen))]
+        [self.schedule.add(MultigeneFamilyAgent(i, self, newgen[i]["genotype"], newgen[i]["family"]))
+         for i in range(len(newgen))]
 
 
 if __name__ == "__main__":
     model = MultigeneFamilyModel(N=1000, mr=0.001, r=0.5)
     for i in range(100):
         model.step()
-    

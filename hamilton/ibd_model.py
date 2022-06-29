@@ -2,9 +2,7 @@ import pandas
 import random
 from model import *
 import networkx as nx
-from nx_script import *
-from nx_script import IBDFamilyTree
-
+from utils import IBDFamilyTree
 
 class IBDFamilyAgent(FamilyAgent):
     """
