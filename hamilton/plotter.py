@@ -6,7 +6,6 @@ import numpy as np
 
 data = pd.read_csv("data/result.csv", index_col=0)
 multidata = pd.read_csv("data/multi_result.csv", index_col=0)
-print(multidata)
 
 
 def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
@@ -104,6 +103,21 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     """
     Function used to plot altruistic allele frequency (result) against two other parameters of user's choice.
     In the output each color will represent a different combination of parameters' values
+
+    :param data: whole data
+    :type data: DataFrame
+    :param param1: parameter name of the x axis
+    :type param1: str
+    :param param2: parameter name of the y axis
+    :type param2: str
+    :param result: parameter name of the z axis
+    :type result: str
+    :param labels: labels of the axis in order: x, y, z
+    :type labels: list of str
+    :param all_params: set of all possible parameters in the DataFrame (exclude non-parameters columns)
+    :type all_params: list of str
+    :param title: title of the plot, defaults to ""
+    :type title: str, optional
     """
 
     data = get_param_ID(data, all_params)
@@ -123,7 +137,7 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     ax.set_zlabel(labels[2])
 
     # we obtain the unique labels of the pID
-    # Each label of RunId correspond to a specific combination of values for the paramters
+    # Each label of pID correspond to a specific combination of values for the paramters
     runs = results["pID"].unique()
 
     handles = []
@@ -147,7 +161,7 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     ax.set_xlim(p1_min, p1_max)
     ax.set_ylim(p2_min, p2_max)
 
-    # plot the surface
+    # plot the plane
     xx, yy = np.meshgrid(np.arange(p1_min, p1_max, (p1_max-p1_min)/100),
                          np.arange(p2_min, p2_max, (p1_max-p1_min)/100))
     z = np.full_like(np.zeros(100), 0.5, shape=xx.shape)
@@ -164,10 +178,10 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     plt.show()
 
 
-labels = ["mutation rate", "death rate", "ending freq altruism"]
+#labels = ["mutation rate", "death rate", "ending freq altruism"]
 #scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
 #          all_params=["N", "r", "dr", "mr"], title="scatter")
 
 #multi_plot_prevalence(multidata)
 #plot_prevalence(multidata)
-plot_rep_fitness(data)
+#plot_rep_fitness(data)
