@@ -63,7 +63,9 @@ class FamilyAgent(Agent):
 
     def altruistic_action(self):
         """
-        Implementation of a generic altruistic action
+        Implementation of a generic altruistic action. 
+        If the actor is altruist he sacrifices and the rest of the family survives (he also have a small
+        probability, 1-dr, to survive). If the actor is non-altruist he survives and the rest of the family not. 
         """
         if self.genotype:
             # 1 - death rate (dr) gives the probability for the altruistic agent to survive 
@@ -79,7 +81,7 @@ class FamilyAgent(Agent):
 class FamilyModel(Model):
     """
     A model for simulation of the evolution of families. 
-    All families includes all altruists members or all non-altruist members.
+    All families include all altruists members or all non-altruist members.
 
     :param Model: the model class for Mesa framework
     :type Model: mesa.model
@@ -87,14 +89,13 @@ class FamilyModel(Model):
 
     def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
         """
-        A model for simulation of the evolution of families. 
-        All families includes all altruists members or all non-altruist members.
+        A model for simulation of the evolution of families.
 
         :param N: total number of agents, defaults to 500
         :type N: int, optional
         :param r: initial ratio of altruistic allele, defaults to 0.5
         :type r: float, optional
-        :param dr: death rate, defaults to 0.95
+        :param dr: death rate for sacrificing altruist, defaults to 0.95
         :type dr: float, optional
         :param mr: mutation rate, defaults to 0.001 
         :type mr: float, optional
@@ -114,8 +115,7 @@ class FamilyModel(Model):
 
     def add_agents(self, N, r):
         """
-        Add agents to the model with the 
-        right proportion (r) of altruistic allele
+        Add agents to the model with the right proportion (r) of altruistic allele
 
         :param N: total number of agents
         :type N: int
@@ -127,7 +127,7 @@ class FamilyModel(Model):
             agent = FamilyAgent(i, self, 1, i)
             self.schedule.add(agent)
 
-        # adding non-altruist agents (genotype = 1)
+        # adding non-altruist agents (genotype = 0)
         for i in range(int(N * r), N):
             agent = FamilyAgent(i, self, 0, i)
             self.schedule.add(agent)
