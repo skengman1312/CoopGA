@@ -68,7 +68,7 @@ if __name__ == '__main__':
                           [grid, chart_0, chart_1],
                           "HerdModel",
                           {"n_creatures": UserSettableParameter("slider", "Creature number", 50, 0, 200, 1),
-                           "n_pred": UserSettableParameter("slider", "Predator number", 50, 0, 200, 1),
+                           "n_pred": UserSettableParameter("slider", "Predator number", 5, 0, 20, 1),
                            "sight": UserSettableParameter("slider", "Creature sight", 5, 0, 20, 1),
                            "rest_time": UserSettableParameter("slider", "Rest_time", 5, 0, 20, 1),
                            "mr": UserSettableParameter("slider", "Mutation rate", 0.01, 0, 1, 0.01),

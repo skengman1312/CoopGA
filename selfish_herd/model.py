@@ -61,7 +61,7 @@ class PredatorAgent(Agent):
 
         if nb:
             nearest_prey = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            if dist(nearest_prey, self.pos) < 5:
+            if dist(nearest_prey, self.pos) < 2:
                 self.hunt(nearest_prey)
             else:  # follow the prey
                 move_vector = mov_vectorize(self.pos, nearest_prey)
@@ -159,17 +159,21 @@ class PreyAgent(Agent):
                 if len(nprey) > 0:
                     nearest_prey = min(nprey,
                                        key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+                    prey_cm_x = sum(x[0] for x in nprey) / len(nprey)
+                    prey_cm_y = sum(y[1] for y in nprey) / len(nprey)
+                    cm_vect = [prey_cm_x, prey_cm_y]
                     # print("nearest prey", nearest_prey)
-                    move_vect = mov_vectorize(self.pos, nearest_prey)
+                    move_vect = mov_vectorize(self.pos, cm_vect)
+                    # move_vect = mov_vectorize(self.pos, nearest_prey)
                     # print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}", f"Genotype: {self.genotype}")
                     move_vect = [round(self.genotype[0] * x, 2) for x in move_vect]
                     # print("move vect", move_vect)
 
                 if fear_vect:
                     # print("fear vector:", fear_vect)
-                    move_vect = mov_vectorize(fear_vect,
-                                              move_vect) if move_vect else fear_vect  # sum prod fear + move -> scappa
-
+                    #move_vect = mov_vectorize(fear_vect,
+                                              #move_vect) if move_vect else fear_vect  # sum prod fear + move -> scappa
+                    move_vect = fear_vect
                     # print(f"Agent ID: {self.unique_id}", f"Move vector: {move_vect}")
 
                 vect_landing: list[Any] = [coord[0] - coord[1] for coord in zip(self.pos, move_vect)]
@@ -214,6 +218,7 @@ class HerdModel(Model):
         self.num_agents = n_creatures
         self.num_pred = n_pred
         self.sight = sight
+        self.rest_time = sight
         self.mr = mr
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
@@ -261,7 +266,7 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(0, self.num_pred):
-            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, rest_time=rest_time)
+            a = PredatorAgent(self.next_id(), self, type="predator", sight=sight, rest_time=self.rest_time)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
