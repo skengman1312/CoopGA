@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import *
 import numpy as np
 
 data = pd.read_csv("result.csv", index_col=0)
-#multidata = pd.read_csv("multi_result.csv", index_col=0)
+multidata = pd.read_csv("multi_result.csv", index_col=0)
 #print(multidata)
 
 
@@ -143,5 +143,5 @@ labels = ["mutation rate", "sight", "ending freq selfish"]
 #scatter3D(data, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
           #all_params=["N", "r", "dr", "mr"], title="scatter")
 
-#multi_plot_prevalence(multidata)
-plot_prevalence(data)
+multi_plot_prevalence(multidata)
+#plot_prevalence(data)
