@@ -7,11 +7,8 @@ if __name__ == '__main__':
               "r": 0.5, #[i*0.1 for i in range(2, 7, 1)]
               "dr":  0.95,
               "mr": 0.001 #[0.001 * x for x in range(1,4)] #0.001
-
-
-
-
               }
+
     results = batch_run(
         MultigeneFamilyModel,
         parameters=params,
@@ -21,6 +18,7 @@ if __name__ == '__main__':
         data_collection_period=1,
         display_progress=True,
     )
+    
     results_df = pd.DataFrame(results)
     print(results_df)
     results_df.to_csv("./data/result.csv")
