@@ -11,19 +11,19 @@ dist = lambda x, y: sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    #def __init__(self, unique_id, model, type="predator", sight=None):
-    def __init__(self, unique_id, model, sight, jump_range = 3, type="predator"):
+    def __init__(self, unique_id, model, sight, jump_range=3, type="predator"):
         """
         Predator Agent init function
         :param unique_id: a unique numeric identifier for the agent model
         :type unique_id: int
         :param model:  instance of the model that contains the agent
         :type model: mesa.model
-        :param type: identifier of the agent type, namely all the agents belonging to this class
-        :type type: str
         :param sight: maximum distance radio of interaction with other agents
         :type sight: int
-        # TODO JUMP
+        :param jump_range: maximum range within which predator can hunt a creature
+        :type jump_range: int
+        :param type: identifier of the agent type, namely all the agents belonging to this class
+        :type type: str
         """
 
         super().__init__(unique_id, model)
@@ -200,31 +200,51 @@ class PreyAgent(Agent):
         self.model.grid.move_agent(self, new_position)
 
     def panic(self, npredator, mov_vectorize):
+        """
+        Implementation of fear vector, namely the distance between the creature and the nearest predator.
 
-        # if there is at least one predator (np = True if len(np)>0)
+        :param npredator: positions (x and y coordinates) of all predators in the sight radius of the agent
+        :type npredator: tuple
+        :param mov_vectorize: compute the difference of the target coordinates
+        :type mov_vectorize: lambda function
+        """
+        # TODO CENTRE OF MASS OF PREDATORS
+        # se c'è più di un predator scappi da entrambi e non solo dal nearest
+
         if npredator:
-            # find the nearest predator using the euclidean distance
-            # key function specify how to compute the minimum (x is each element in np list)
             nearest_predator = min(npredator,
                                    key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            # print("nearest predator:", nearest_predator)
-
-            # return mov_vectorize(self.pos, [-x for x in nearest_predator])
             return mov_vectorize([x for x in nearest_predator], self.pos)
 
         return None
 
 
-# TODO think about adding rest time as hyperparameter
 class HerdModel(Model):
-    """A model with some number of food, creatures and predators."""
+    """
+    A model for simulation of the evolution.
+
+    :param Model: the model class for Mesa framework
+    :type Model: mesa.model
+    """
 
     def __init__(self, n_creatures: int, n_pred: int, sight: int, jump_range: int, mr: int, width: int, height: int):
         """
-        n_creatures: number of creatures
-        n_pred: number of predators
-        sight: sight of creatures and predators
+        HerdModel init function
+
+        :param n_creatures: total number of PreyAgents
+        :type n_creatures: int
+        :param n_pred: total number of PredatorAgents
+        :type n_pred: int
+        :param sight: maximum distance radio of interaction of Predators with Preys agents
+        :type sight: int
+        :param jump_range: maximum range within which predator can hunt a creature
+        :type jump_range: int
+        :param mr: mutation rate
+        :type mr: float
+        :param width, height: The mesa grid’s width and height
+        :type width, height: int
         """
+
         self.num_agents = n_creatures
         self.num_pred = n_pred
         self.sight = sight
@@ -232,7 +252,6 @@ class HerdModel(Model):
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
         self.current_id = 0
-        # self.grid = Grid(width, height, True)
 
         self.running = True
         self.datacollector = DataCollector(model_reporters={
@@ -243,14 +262,14 @@ class HerdModel(Model):
             "n_agents": lambda x: x.schedule.get_agent_count(),
             "Selfish gene frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                                                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
+                len([agent for agent in x.schedule.agents if agent.type == "creature"])
+                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
             "Fear frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] < 0]) /
-                                        len([agent for agent in x.schedule.agents if agent.type == "creature"])
-            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0
-        })  # ,
-        # agent_reporters={"Health": "hp"})
+                len([agent for agent in x.schedule.agents if agent.type == "creature"])
+                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
+
+        # TODO SISTEMARE IL DATA COLLECTOR
 
         # Create agents
         # Every prey has a genotype described by a number [-1, 1] that influence its behaviour
