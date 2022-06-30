@@ -73,7 +73,6 @@ class BeardModel(Model):
         """
 
         self.schedule = SocialActivation(self)
-        self.n_steps = 0
         self.N = N
         self.tot_N = N
         self.mr = mr
@@ -115,7 +114,8 @@ class BeardModel(Model):
         3. Add the new generation of agents to the model
         4. Remove all the "old" agents from the model
         """
-        # TODO still problema sui pairs se la popolazione è dispari
+        # TODO still problema sui pairs se la popolazione è
+        # TODO modificare assignment of ID to child (mettere self.next_id() e togliere self.tot_N)
         # 1
         agents = random.sample([agent for agent in self.schedule.agents], k=len(self.schedule.agents))
 
@@ -141,36 +141,43 @@ class BeardModel(Model):
             self.schedule.remove(agent2)
 
     def step(self) -> None:
+        """
+        Model step
+        Each agent is randomly assigned to an "interaction room". Each room can contain a maximum of two agents and 
+        could be of two different kinds: 
+        - danger, at least one agent dies according to the genotype of the agents involved
+        - no danger, both agents survive
+        
+        Scenario 1 - room with danger.
+            If there is only one agent in the room, it will die.
+            If there are two agents, one of them is randomly chosen to notice the danger. Depending on its genotype:
 
-        print("Step Model")
+            1.1: both agents have the GreenBeard (altruistic) genotype,
+                 the agent notified of the danger sacrifice itself (altruist) and save the other agent.
+            1.2: at least one agent has the non-altruistic genotype,
+                 independently of the genotype of the agent notified of the danger, one of them will die
+        """
 
         # creating the "interaction rooms"
         num_agents = len(self.schedule.agents)
         rooms_number = num_agents  # tot number of rooms
-        self.n_steps += 1
-        print("step: ", self.n_steps)
-        print("num agent: ", num_agents)
 
-        # print("N: ", num_agents)
-        danger_number = num_agents // 1.87  # we derived it from the wcs to have at least 500 individuals left,
+        # TODO spiegare la divisione per 1.87
+        danger_number = num_agents // 1.87
         danger_dict: dict = {i: [] for i in range(int(danger_number))}
-        # dictionary in which the key is the room number and the value is the list of individuals in that room
 
-        # assign each agent to a tree/room
+        # assign each agent to an "interaction room"
         for agent in self.schedule.agent_buffer():
             rand = random.randint(1, rooms_number)
-            if rand < danger_number:  # pred
-
+            if rand < danger_number:
                 if len(danger_dict[rand]) < 2:
                     danger_dict[rand].append(agent)
-
                 else:
-                    continue  # goes to no pred room
-
-            else:  # goes to no pred room
+                    continue
+            else:
                 continue
 
-        #action of the agent
+        # action of the agent - Scenario 1
         for key, value in danger_dict.items():
             if len(value) == 0:
                 continue
@@ -181,9 +188,13 @@ class BeardModel(Model):
                 agent2 = value[1]
                 gen1 = agent1.genotype
                 gen2 = agent2.genotype
+
+                # 1.1
                 if gen1 and gen2:  # both green beard
                     if random.random() < self.dr: # die with 0.50 probability
                         self.schedule.remove(agent1)
+
+                # 1.2
                 else:  # both cowardice or 1 cowardice and 1 altruistic, one of the 2 dies.
                     self.schedule.remove(agent1)
 
