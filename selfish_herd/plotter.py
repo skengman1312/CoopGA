@@ -110,7 +110,6 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
     results = data[data["Step"] == max_step]
 
     # initializing the plot
-    fig = plt.figure()
     ax = plt.axes(projection='3d')
 
     # setting the labels
