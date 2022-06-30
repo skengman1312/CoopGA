@@ -1,23 +1,24 @@
 import random
 from mesa import Agent, Model
 from mesa.datacollection import DataCollector
-from mesa.time import RandomActivation
 from mesa.time import BaseScheduler
 
 
 class SocialActivation(BaseScheduler):
-    """A scheduler which activates each agent once per step, in random order,
+    """
+    A scheduler which activates each agent once per step, in random order,
     with the order reshuffled every step but only activate the actors.
 
-    Assumes that all agents have a step(model) method.
-
+    :param BaseScheduler: activates agents one at a time, in the order they were added.
+    Assumes that each agent added has a step method which takes no arguments.
     """
 
     def step(self, actors) -> None:
-        """Executes the step of all agents, one at a time, in
-        random order.
-
         """
+        Executes the step of all agents, one at a time, in
+        random order.
+        """
+
         for agent in self.agent_buffer(shuffled=True):
             if agent.unique_id in actors:
                 agent.step()
@@ -27,13 +28,24 @@ class SocialActivation(BaseScheduler):
 
 class BeardAgent(Agent):
     """
-    an agent to simulate the altruistic behaviour based on relatedness
+    Agent class to simulate GreenBeard altruism behaviour based on genotype
+
+    :param Agent: the agent class for Mesa framework
+    :type Agent: mesa.agent
     """
 
     def __init__(self, unique_id, model, genotype):
         """
-        genotype: 1 codes for altruism 0 for cowardice
+        BeardAgent init function
+        
+        :param unique_id: a unique numeric identifier for the agent model
+        :type unique_id: int
+        :param model:  instance of the model that contains the agent
+        :type model: mesa.model
+        :param genotype: binary representation of single-gene genotype (0: non-altruist, 1: altruist)
+        :type genotype: int
         """
+
         super().__init__(unique_id, model)
         self.genotype = genotype
 
