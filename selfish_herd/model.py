@@ -322,7 +322,7 @@ class HerdModel(Model):
 
         # 1
         preys = [agent for agent in self.schedule.agents if agent.type == "creature"]
-        prey_agents = random.sample(preys, k=len(preys) // 2)
+        prey_agents = random.sample(preys, k=len(preys))
 
         # 2
         for i in range(0, len(prey_agents) - 1, 2):

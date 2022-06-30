@@ -168,10 +168,8 @@ if __name__ == '__main__':
               labels=["jump_range", "sight", "ending selfish freq "],
               all_params=["n_creatures", "n_pred", "sight", "jump_range", "mr"], title="scatter")
 
-    scatter3D(data, param1="jump_range", param2="sight", result="Selfish gene frequency",
-              labels=["jump_range", "sight", "ending selfish freq "],
-              all_params=["n_creatures", "n_pred", "sight", "jump_range", "mr"], title="scatter 1")
-
-
+    #scatter3D(data, param1="jump_range", param2="sight", result="Selfish gene frequency",
+              #labels=["jump_range", "sight", "ending selfish freq "],
+              #all_params=["n_creatures", "n_pred", "sight", "jump_range", "mr"], title="scatter 1")
     #plot_prevalence(data)
-    #multi_plot_prevalence(multidata)
+    multi_plot_prevalence(multidata)
