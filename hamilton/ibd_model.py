@@ -115,7 +115,7 @@ class IBDFamilyModel(FamilyModel):
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), 
                    "family": p[0].unique_id,
-                   "parents id": [pa.unique_id for pa in p]} for p in mating_pairs for i in range(15)]
+                   "parents id": [pa.unique_id for pa in p]} for p in mating_pairs for i in range(30)]
     
         # 4 
         self.tree.remove_generation(self.schedule.steps - 3)
@@ -138,7 +138,7 @@ class IBDFamilyModel(FamilyModel):
         """
         
         # even in the worst case scenario at least N individuals survive so we can have all rooms as dangerous
-        self.rooms = np.random.choice(self.schedule.agents, (len(self.schedule.agents) // 5, 5), replace=False).tolist()
+        self.rooms = np.random.choice(self.schedule.agents, (len(self.schedule.agents) // 20, 15), replace=False).tolist()
 
         self.active = [random.choice(r).unique_id for r in self.rooms]
 
