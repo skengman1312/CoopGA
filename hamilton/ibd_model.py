@@ -32,7 +32,7 @@ class IBDFamilyAgent(FamilyAgent):
         if self.genotype:
             # computing the benefit
             A_room.remove(self)
-            b = sum([1 * self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
+            b = sum([2 * self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
                     pre + str(a.unique_id)) for a in A_room])
 
             if b > 1:
@@ -115,7 +115,7 @@ class IBDFamilyModel(FamilyModel):
         mutate = lambda x: x if random.random() > self.mr else 1 - x
         newgen = [{"genotype": mutate(random.choice([a.genotype for a in p])), 
                    "family": p[0].unique_id,
-                   "parents id": [pa.unique_id for pa in p]} for p in mating_pairs for i in range(30)]
+                   "parents id": [pa.unique_id for pa in p]} for p in mating_pairs for i in range(15)]
     
         # 4 
         self.tree.remove_generation(self.schedule.steps - 3)
@@ -150,9 +150,9 @@ class IBDFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N=100, mr=0.001, r=0.5)
+    model = IBDFamilyModel(N=25, mr=0.001, r=0.5)
     print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
-    for i in range(50):
+    for i in range(300):
         print(f">>>Step n{i}<<<")
         model.step()
     print("\naltruists after steps\t",

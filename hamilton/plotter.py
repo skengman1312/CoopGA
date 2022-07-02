@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import *
 import numpy as np
 
-data = pd.read_csv("data/idb_result.csv", index_col=0)
+data = pd.read_csv("final_data/ibd_result.csv", index_col=0)
 multidata = pd.read_csv("data/multi_result.csv", index_col=0)
 
 
@@ -45,7 +45,7 @@ def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
     plt.title(f"{maintitle}\n{subtitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
-    plt.savefig(f"./data/{filename}")
+    plt.savefig(f"./final_data/{filename}")
     plt.show()
 
 def get_param_ID(data, params=["N", "r", "dr", "mr"]):
@@ -183,5 +183,5 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 #          all_params=["N", "r", "dr", "mr"], title="scatter")
 
 #multi_plot_prevalence(data)
-plot_prevalence(data)
+plot_prevalence(data, title="with ibd")
 #plot_rep_fitness(data)
