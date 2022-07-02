@@ -32,7 +32,7 @@ class IBDFamilyAgent(FamilyAgent):
         if self.genotype:
             # computing the benefit
             A_room.remove(self)
-            b = sum([self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
+            b = sum([2 * self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
                     pre + str(a.unique_id)) for a in A_room])
 
             if b > 1:
@@ -138,7 +138,7 @@ class IBDFamilyModel(FamilyModel):
         """
         
         # even in the worst case scenario at least N individuals survive so we can have all rooms as dangerous
-        self.rooms = np.random.choice(self.schedule.agents, (len(self.schedule.agents) // 5, 5), replace=False).tolist()
+        self.rooms = np.random.choice(self.schedule.agents, (len(self.schedule.agents) // 20, 15), replace=False).tolist()
 
         self.active = [random.choice(r).unique_id for r in self.rooms]
 
@@ -150,9 +150,9 @@ class IBDFamilyModel(FamilyModel):
 
 
 if __name__ == "__main__":
-    model = IBDFamilyModel(N=100, mr=0.001, r=0.5)
+    model = IBDFamilyModel(N=25, mr=0.001, r=0.5)
     print("\naltruists before steps\t", len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
-    for i in range(50):
+    for i in range(300):
         print(f">>>Step n{i}<<<")
         model.step()
     print("\naltruists after steps\t",
