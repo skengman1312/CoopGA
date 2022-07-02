@@ -32,7 +32,7 @@ class IBDFamilyAgent(FamilyAgent):
         if self.genotype:
             # computing the benefit
             A_room.remove(self)
-            b = sum([self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
+            b = sum([1 * self.model.tree.ig_ibd_coeff(pre + str(self.unique_id),
                     pre + str(a.unique_id)) for a in A_room])
 
             if b > 1:

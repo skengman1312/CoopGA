@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import *
 import numpy as np
 
-data = pd.read_csv("data/result.csv", index_col=0)
+data = pd.read_csv("data/idb_result.csv", index_col=0)
 multidata = pd.read_csv("data/multi_result.csv", index_col=0)
 
 
@@ -182,6 +182,6 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 #scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction", labels=labels,
 #          all_params=["N", "r", "dr", "mr"], title="scatter")
 
-#multi_plot_prevalence(multidata)
-#plot_prevalence(multidata)
+#multi_plot_prevalence(data)
+plot_prevalence(data)
 #plot_rep_fitness(data)
