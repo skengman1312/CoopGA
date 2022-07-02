@@ -6,6 +6,7 @@ from mesa.datacollection import DataCollector
 from math import sqrt
 
 dist = lambda x, y: sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
+mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
 
 
 class PredatorAgent(Agent):
@@ -53,8 +54,6 @@ class PredatorAgent(Agent):
         Scenario 2 - no creatures in the sight radius, random move
         """
 
-        mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-
         all_possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
         possible_steps = [x for x in all_possible_steps if self.model.grid.is_cell_empty(x)]
 
@@ -68,12 +67,8 @@ class PredatorAgent(Agent):
                 self.hunt(nearest_prey, all_possible_steps)
 
             else:
-
-                move_vector = mov_vectorize(self.pos, nearest_prey)
-                vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vector)]
                 if possible_steps:
-                    new_position = min(possible_steps, key=lambda x: sqrt(
-                        ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
+                    new_position = self.chase(nearest_prey, possible_steps)
                     self.model.grid.move_agent(self, new_position)
 
         # Scenario 2
@@ -81,11 +76,19 @@ class PredatorAgent(Agent):
             new_position = self.random.choice(possible_steps)
             self.model.grid.move_agent(self, new_position)
 
-    # TODO CHASING FUNCTION
-    def chase(self):
+    def chase(self, nearest_prey, possible_steps):
         """
         Implementation of agent chasing action.
+
+        :param nearest_prey: position of the nearest creature, namely x and y coordinates
+        :type nearest_prey: tuple
+        :param possible_steps: all possible cells in which the agent can move defined by x and y coordinates
+        :type np: tuple
         """
+        move_vector = mov_vectorize(self.pos, nearest_prey)
+        vect_landing = [coord[0] - coord[1] for coord in zip(self.pos, move_vector)]
+        return min(possible_steps, key=lambda x: sqrt(
+            ((vect_landing[0] - x[0]) ** 2) + ((vect_landing[1] - x[1]) ** 2)))
 
     def eat(self):
         """
@@ -154,7 +157,7 @@ class PreyAgent(Agent):
         Implementation of agent move according to distance and possible interaction with other agents.
 
         :param possible_steps: all possible cells in which the agent can move defined by x and y coordinates
-        :type np: tuple
+        :type possible_steps: tuple
 
         Scenario 1 - at least one agent in the sight radius
             1.1: the agents in the sight radius are all creatures,
@@ -163,6 +166,7 @@ class PreyAgent(Agent):
                  - positive genotype [0,1] -> the agent move in the direction of the center of mass
             1.2: the agents in the sight radius are all predators,
                  the agent runs away in the opposite direction wrt the nearest predator
+                 (if more than one predator, it moves in the opposite direction wrt the center of mass of the predators)
             1.3: the agents in the sight radius are creatures and predators,
                  the agent runs away in the opposite direction wrt the nearest predator
         Scenario 2 - no agents in the sight radius, random move
@@ -172,8 +176,9 @@ class PreyAgent(Agent):
         npredator = [x.pos for x in np if x.type == "predator"]
         nprey = [x.pos for x in np if x.type == "creature"]
 
-        mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
-        fear_vect = self.panic(npredator, mov_vectorize)
+        fear_vect = None
+        if npredator:
+            fear_vect = self.panic(npredator)
 
         # Scenario 1
         if len(nprey) > 0 or fear_vect:
@@ -199,24 +204,19 @@ class PreyAgent(Agent):
 
         self.model.grid.move_agent(self, new_position)
 
-    def panic(self, npredator, mov_vectorize):
+    def panic(self, npredator):
         """
         Implementation of fear vector, namely the distance between the creature and the nearest predator.
 
         :param npredator: positions (x and y coordinates) of all predators in the sight radius of the agent
         :type npredator: tuple
-        :param mov_vectorize: compute the difference of the target coordinates
-        :type mov_vectorize: lambda function
         """
         # TODO CENTRE OF MASS OF PREDATORS
         # se c'è più di un predator scappi da entrambi e non solo dal nearest
 
-        if npredator:
-            nearest_predator = min(npredator,
-                                   key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
-            return mov_vectorize([x for x in nearest_predator], self.pos)
-
-        return None
+        nearest_predator = min(npredator,
+                               key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
+        return mov_vectorize([x for x in nearest_predator], self.pos)
 
 
 class HerdModel(Model):
@@ -263,12 +263,12 @@ class HerdModel(Model):
             "n_agents": lambda x: x.schedule.get_agent_count(),
             "Selfish gene frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] >= 0]) /
-                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
+                                        len([agent for agent in x.schedule.agents if agent.type == "creature"])
+            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0,
             "Fear frequency": lambda x: len(
                 [a for a in x.schedule.agents if a.type == "creature" and a.genotype[0] < 0]) /
-                len([agent for agent in x.schedule.agents if agent.type == "creature"])
-                if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
+                                        len([agent for agent in x.schedule.agents if agent.type == "creature"])
+            if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
 
         # TODO SISTEMARE IL DATA COLLECTOR
         self.add_agents(n_creatures, n_pred)
@@ -284,9 +284,8 @@ class HerdModel(Model):
         """
 
         # adding selfish PreyAgents (genotype = 1)
-        for i in range(num_agents // 2):
-            genotype = [1]
-            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=self.sight)
+        for i in range(0, num_agents // 2):
+            a = PreyAgent(self.next_id(), self, genotype=[1], type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -294,9 +293,8 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         # adding non-selfish PreyAgents (genotype = -1)
-        for i in range(num_agents // 2):
-            genotype = [-1]
-            a = PreyAgent(self.next_id(), self, genotype=genotype, type="creature", sight=self.sight)
+        for i in range(0, num_agents // 2):
+            a = PreyAgent(self.next_id(), self, genotype=[-1], type="creature", sight=self.sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -313,63 +311,61 @@ class HerdModel(Model):
 
     def reproduce(self, max_child=3):
         """
-        function to generate the new population from the parent individuals both for prey and predators
-        select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
-        randomly from one of the 2 parents
-        During the reproduction there is the chance of mutation
-        """
-
-        """
         Function to generate the new population from the parent PreyAgents
         1. Sample PreyAgents from current population and generate pairs of individuals
-        2. Create the new generation within a range, defining inherited genotype (mutation applied) and family ID
-        3. Remove all the "old" agents from the model
-        4. Add the new generation of agents to the model
+        2. Create the new generation within a range, defining inherited genotype (mutation applied)
+        3. Add the new generation of agents to the model and to the grid (in a random position)
+        4. Remove all the "old" agents from the model and the grid
         """
         # TODO PROBLEMI CON LA REPRODUCTION, PROVARE CON k=self.num_agents
         # loro fanno il reproduce sopra
+
         # 1
         preys = [agent for agent in self.schedule.agents if agent.type == "creature"]
-        prey_agents = random.sample(preys, k=len(preys))
+        prey_agents = random.sample(preys, k=len(preys) // 2)
 
+        # 2
         for i in range(0, len(prey_agents) - 1, 2):
             agent1 = prey_agents[i]
             agent2 = prey_agents[i + 1]
             n_child = random.randint(2, max_child)
 
             for j in range(n_child):
-                gen1 = []
-                gen1.append(agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0])
+                gen1 = [agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0]]
 
                 # TODO MUTATION
-                #if random.random() < self.mr:  # random mutation
-                    #gen1[0] = round(random.uniform(-1, 1), 2)
+                if random.random() < self.mr:  # random mutation
+                    gen1[0] = round(random.uniform(-1, 1), 2)
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
 
+                # 3
                 self.schedule.add(child)
 
                 x = self.random.randrange(self.grid.width)
                 y = self.random.randrange(self.grid.height)
                 self.grid.place_agent(child, (x, y))
 
+            # 4
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
             self.grid.remove_agent(agent1)
             self.grid.remove_agent(agent2)
 
     def step(self):
-        """Advance the model by one step."""
-
+        """
+        Model step
+        Reproduction is performed every time the number of creatures reaches a threshold.
+        """
+        # TODO FORSE MEGLIO FARE LA REPRODUCTION OGNI TOT STEP?
 
         self.schedule.step()
 
         n_creature = len([agent for agent in self.schedule.agents if agent.type == "creature"])
-        if n_creature <= self.num_agents / 1.1:
+        if n_creature <= self.num_agents / 1.2:
             self.reproduce()
 
         """if len([a for a in self.schedule.agents if a.type == "creature" and a.genotype[0]]) / n_creature == 0: #selfish frequency == 0
             self.running = False"""
-
 
         self.datacollector.collect(self)

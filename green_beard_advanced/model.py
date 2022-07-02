@@ -27,7 +27,7 @@ class SocialActivation(BaseScheduler):
 
 class BeardAgent(Agent):
     """
-    Agent class to simulate Green Beard altruism
+    Agent class to simulate Green Beard altruism considering 2 alleles
 
     :param Agent: the agent class for Mesa framework
     :type Agent: mesa.agent
@@ -35,18 +35,16 @@ class BeardAgent(Agent):
 
     def __init__(self, unique_id, model, genotype):
         """
-        Agent class to simulate Green Beard altruism
+        BeardAgent init function
 
         :param unique_id: a unique numeric identifier for the agent model
         :type unique_id: int
         :param model:  instance of the model that contains the agent
         :type model: mesa.model
-        :param genotype: list composed of 2 binary representations (allele1, allele2)
+        :param genotype: list composed of 2 binary representations [allele1, allele2]
+            - allele1: 1 codes for altruism, 0 for cowardice
+            - allele2: 1 code for green beard, 0 for non beard
         :type genotype: list
-
-        genotype: 1 gene with 2 alleles (a list of 2 integers)
-            - allele1: 1 codes for altruism 0 for cowardice
-            - allele2: 1 code for beard 0 for non beard
         """
 
         super().__init__(unique_id, model)
@@ -74,7 +72,10 @@ def crossover(agent1, agent2):
 
 class BeardModelAdv(Model):
     """
-    a model for simulation of the evolution of Green Beard Altruism
+    A model for simulation of the evolution of Green Beard Altruism.
+
+    :param Model: the model class for Mesa framework
+    :type Model: mesa.model
     """
 
     def __init__(self, N=2000, r=0.25, dr=0.95, mr=0.001, cr=0, linkage_dis=False):
