@@ -308,7 +308,7 @@ class HerdModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-    def reproduce(self, max_child=3):
+    def reproduce(self, max_child=4):
         """
         Function to generate the new population from the parent PreyAgents
         1. Sample PreyAgents from current population and generate pairs of individuals
@@ -361,7 +361,7 @@ class HerdModel(Model):
         self.schedule.step()
 
         n_creature = len([agent for agent in self.schedule.agents if agent.type == "creature"])
-        if n_creature <= self.num_agents / 1.3:
+        if n_creature <= self.num_agents / 1.5:
             self.reproduce()
 
         """if len([a for a in self.schedule.agents if a.type == "creature" and a.genotype[0]]) / n_creature == 0: #selfish frequency == 0
