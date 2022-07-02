@@ -5,7 +5,7 @@ import pandas as pd
 if __name__ == '__main__':
     params = {"n_creatures": 200,  # range(50, 200, 10),
               "n_pred": 15, #range(5, 16, 5),
-              "sight": range(3, 8, 2),
+              "sight": range(3, 4, 2),
               "jump_range": range(2, 6, 3),
               "mr": 0,  # [0.001 * x for x in range(1, 2)],
               "width": 100, "height": 100}

@@ -64,7 +64,7 @@ class PredatorAgent(Agent):
         if nb:
             nearest_prey = min(nb, key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
             if dist(nearest_prey, self.pos) < self.jump_range:
-                self.hunt(nearest_prey, all_possible_steps)
+                self.hunt(nearest_prey)
 
             else:
                 if possible_steps:
@@ -102,16 +102,15 @@ class PredatorAgent(Agent):
                 self.hp = self.rest_time
                 break
 
-    def hunt(self, np, possible_steps):
+    def hunt(self, np):
         """
         Implementation of agent hunting action.
 
         :param np: position of the nearest creature, namely x and y coordinates
         :type np: tuple
-        :param possible_steps: all possible cells in which the agent can move defined by x and y coordinates
         :type np: tuple
         """
-
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=4)
         new_position = min(possible_steps, key=lambda x: sqrt(((np[0] - x[0]) ** 2) + ((np[1] - x[1]) ** 2)))
         self.model.grid.move_agent(self, new_position)
         self.eat()
@@ -333,9 +332,9 @@ class HerdModel(Model):
             for j in range(n_child):
                 gen1 = [agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0]]
 
-                # TODO MUTATION
+                """# TODO MUTATION
                 if random.random() < self.mr:  # random mutation
-                    gen1[0] = round(random.uniform(-1, 1), 2)
+                    gen1[0] = round(random.uniform(-1, 1), 2)"""
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
 
@@ -362,7 +361,7 @@ class HerdModel(Model):
         self.schedule.step()
 
         n_creature = len([agent for agent in self.schedule.agents if agent.type == "creature"])
-        if n_creature <= self.num_agents / 1.2:
+        if n_creature <= self.num_agents / 1.3:
             self.reproduce()
 
         """if len([a for a in self.schedule.agents if a.type == "creature" and a.genotype[0]]) / n_creature == 0: #selfish frequency == 0
