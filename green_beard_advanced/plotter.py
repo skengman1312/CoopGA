@@ -166,14 +166,23 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
 def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], frequency=True, fill=True):
     """
-    function used to plot the mean of the allele prevalence across several simulation
-    """
-    # data = data.drop(columns=["N", "r", "RunId"])
-    # masking the values of each iteration
-    # creating a boolean mask for each iteration to be plotted
+    Function used to plot the mean of the allele prevalence across several simulation
 
+    :param data: all data obtained through the batch run
+    :type data: dataframe
+    :param title: title of the plot
+    :type title: str, optional
+    :param params: parameters to be included in the subtitle
+    :type params: list
+    :param frequency: flag need to plot wrt frequency or number of agents
+    :type frequency: bool
+    :param fill: flag need to display two visually different plots
+    :type fill: bool
+    """
+
+    # creating a boolean mask for each iteration to be plotted
     msk = [data["iteration"] == i for i in data["iteration"].unique()]
-    ms = data["Step"].max()  # max step  printa step r
+    ms = data["Step"].max()
 
     # grouping all the lines in a single df without other data
     if frequency:
@@ -220,7 +229,6 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
 
     else:
         # filling the background wrt mean line values
-        # EDO
         plt.fill_between(list(range(0, ms + 1)),
                          y1=0,
                          y2=lines_true["mean"],
@@ -231,6 +239,7 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
                          y1=lines_true["mean"],
                          y2=lines_true["mean"] + lines_suckers["mean"],
                          color="#FF1493", alpha=0.9)
+
         plt.fill_between(list(range(0, ms + 1)),
                          y1=lines_true["mean"] + lines_suckers["mean"],
                          y2=lines_cowards["mean"] + lines_true["mean"] + lines_suckers["mean"],
@@ -251,16 +260,21 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
 
     plt.title(f"{maintitle}\n{subtitle}")
     plt.legend(["true beards", "suckers", "cowards", "impostors"], loc='best', framealpha=0.2, title="Labels")
-    #plt.legend(["impostors","true beards", "cowards","suckers"], loc='best', framealpha=0.2, title="Labels")
-
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filename)
     plt.show()
-
     pass
 
 
 def get_all_param_ID(data, params=["N", "r", "dr", "mr", "cr"]):
+    """
+    Function used to retrieve data according to their IDs
+
+    :param data: data to compute the paramID on
+    :type data: dataframe
+    :param params: parameters' name used for the segmentation
+    :type params: list
+    """
 
     data["pID"] = data[params].astype(str).sum(axis=1)
     mapdict = {data["pID"].unique()[i]: i for i in range(
@@ -273,7 +287,19 @@ def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub="",
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
+
+    :param data: data to compute the paramID on
+    :type data: dataframe
+    :param params: parameters' name used for the segmentation and to be included in the subtitle
+    :type params: list
+    :param sub: subtitle of the plot
+    :type sub: str, optional
+    :param frequency: flag need to plot wrt frequency or number of agents
+    :type frequency: bool
+    :param fill: flag need to display two visually different plots
+    :type fill: bool
     """
+
     data = get_all_param_ID(data, params)
     msk = [data["pID"] == i for i in data["pID"].unique()]
     for m in msk:
@@ -316,6 +342,6 @@ if __name__ == "__main__":
     #plot_all_prevalence(data1, title="Green Beard", frequency=True, fill=False)
 
     #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium", frequency=True, fill=False)
-    multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True, fill=False)
+    #multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True, fill=False)
 
 
