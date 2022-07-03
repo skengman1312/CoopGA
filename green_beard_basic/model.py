@@ -58,7 +58,7 @@ class BeardModel(Model):
     :type Model: mesa.model
     """
 
-    def __init__(self, N=500, r=0.5, dr=0.95, mr=0.001):
+    def __init__(self, N=1000, r=0.5, dr=0.95, mr=0.001):
         """
         BeardModel init function
 
@@ -74,7 +74,7 @@ class BeardModel(Model):
 
         self.schedule = SocialActivation(self)
         self.N = N
-        self.tot_N = N
+        self.current_id = 0
         self.mr = mr
         self.dr = dr
 
@@ -98,12 +98,12 @@ class BeardModel(Model):
 
         # adding altruist agents (genotype = 1)
         for i in range(int(N * r)):
-            agent = BeardAgent(i, self, 1)
+            agent = BeardAgent(self.next_id(), self, 1)
             self.schedule.add(agent)
 
         # adding non-altruist agents (genotype = 0)
-        for i in range(int(N * r), N+1):
-            agent = BeardAgent(i, self, 0)
+        for i in range(int(N * r), N):
+            agent = BeardAgent(self.next_id(), self, 0)
             self.schedule.add(agent)
 
     def reproduce(self, max_child=4):
@@ -114,8 +114,7 @@ class BeardModel(Model):
         3. Add the new generation of agents to the model
         4. Remove all the "old" agents from the model
         """
-        # TODO still problema sui pairs se la popolazione è
-        # TODO modificare assignment of ID to child (mettere self.next_id() e togliere self.tot_N)
+
         # 1
         agents = random.sample([agent for agent in self.schedule.agents], k=len(self.schedule.agents))
 
@@ -126,12 +125,11 @@ class BeardModel(Model):
 
             # 2
             for j in range(n_child):
-                self.tot_N += 1
                 child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
                 mutate = lambda x: x if random.random() > self.mr else 1 - x
                 # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
                 child_genotype = mutate(child_genotype)
-                child = BeardAgent(self.tot_N, self, child_genotype)
+                child = BeardAgent(self.next_id(), self, child_genotype)
 
                 # 3
                 self.schedule.add(child)
@@ -150,7 +148,7 @@ class BeardModel(Model):
         
         Scenario 1 - room with danger.
             If there is only one agent in the room, it will die.
-            If there are two agents, one of them is randomly chosen to notice the danger. Depending on its genotype:
+            If there are two agents, one of them is randomly notified of the danger. Depending on its genotype:
 
             1.1: both agents have the GreenBeard (altruistic) genotype,
                  the agent notified of the danger sacrifice itself (altruist) and save the other agent.
@@ -159,11 +157,12 @@ class BeardModel(Model):
         """
 
         # creating the "interaction rooms"
+        # proportion of the dangerous rooms is computed in such a way to ensure enough agents survive to
+        # generate the next generation
         num_agents = len(self.schedule.agents)
-        rooms_number = num_agents  # tot number of rooms
+        rooms_number = num_agents
 
-        # TODO spiegare la divisione per 1.87
-        danger_number = num_agents // 1.87
+        danger_number = num_agents // 1.8
         danger_dict: dict = {i: [] for i in range(int(danger_number))}
 
         # assign each agent to an "interaction room"
@@ -190,12 +189,12 @@ class BeardModel(Model):
                 gen2 = agent2.genotype
 
                 # 1.1
-                if gen1 and gen2:  # both green beard
-                    if random.random() < self.dr: # die with 0.50 probability
+                if gen1 and gen2:
+                    if random.random() < self.dr:
                         self.schedule.remove(agent1)
 
                 # 1.2
-                else:  # both cowardice or 1 cowardice and 1 altruistic, one of the 2 dies.
+                else:
                     self.schedule.remove(agent1)
 
         agents_id = [a.unique_id for a in self.schedule.agents]
@@ -212,7 +211,7 @@ if __name__ == "__main__":
     print("Initial frequency of green beard allele:",
           len([a for a in model.schedule.agent_buffer() if a.genotype == 1]) / model.schedule.get_agent_count())
 
-    for i in range(100):
+    for i in range(1000):
         model.step()
 
     print("Final frequency of green beard allele:",

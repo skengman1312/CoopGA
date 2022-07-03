@@ -38,7 +38,7 @@ def plot_prevalence(data, title="", params=["N", "r", "dr", "mr"]):
         spine.set_visible(False)
     plt.xlabel("Steps")
     plt.ylabel("Allele frequency")
-    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    maintitle = f"{title}" if title else "GreenBeard altruism"
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
     plt.title(f"{maintitle}\n{subtitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
@@ -151,7 +151,7 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
     ax.legend(handles, runs.data)
 
-    maintitle = f"Kinship altruism {title}" if title else "Kinship altruism"
+    maintitle = f"GreenBeard altruism {title}" if title else "GreenBeard altruism"
     plt.title(f"{maintitle}")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filename)
@@ -164,14 +164,14 @@ if __name__ == '__main__':
     data = pd.read_csv("result.csv", index_col=0)
     multidata = pd.read_csv("multi_result.csv", index_col=0)
 
-    scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction",
-              labels=["mutation rate", "death rate", "ending freq altruism"],
-              all_params=["N", "r", "dr", "mr"], title="scatter")
+    #scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction",
+              #labels=["mutation rate", "death rate", "ending freq altruism"],
+              #all_params=["N", "r", "dr", "mr"], title="scatter")
 
-    scatter3D(data, param1="mr", param2="dr", result="altruistic fraction",
-              labels=["mutation rate", "death rate", "ending freq altruism"],
-              all_params=["N", "r", "dr", "mr"], title="scatter")
+    #scatter3D(data, param1="mr", param2="dr", result="altruistic fraction",
+              #labels=["mutation rate", "death rate", "ending freq altruism"],
+              #all_params=["N", "r", "dr", "mr"], title="scatter")
 
 
-    plot_prevalence(data)
-    multi_plot_prevalence(multidata)
+    plot_prevalence(data, title="GreenBeard altruism")
+    #multi_plot_prevalence(multidata)
