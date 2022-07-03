@@ -95,7 +95,6 @@ class BeardModelAdv(Model):
 
         super().__init__()
         self.schedule = SocialActivation(self)
-        self.n_steps = 0
         self.N = N
         self.current_id = 0
         self.mr = mr
@@ -201,35 +200,49 @@ class BeardModelAdv(Model):
             self.schedule.remove(agent2)
 
     def step(self) -> None:
+        """
+        Model step
+        Each agent is randomly assigned to an "interaction room". Each room can contain a maximum of two agents and
+        could be of two different kinds:
+        - danger, at least one agent dies according to the genotype of the agents involved
+        - no danger, both agents survive
 
-        print("numero altruisti: ", len([a for a in self.schedule.agent_buffer() if a.genotype[0] == 1]))
+        Scenario 1 - room with danger.
+            If there is only one agent in the room, it will die.
+            If there are two agents, one of them is randomly notified of the danger. Depending on its genotype:
+
+            1.1: one agent has the green-beard genotype and the other the altruistic genotype,
+                 the agent notified of the danger (with the altruistic allele) sacrifice itself (altruist) and save the
+                 other agent carrying the green-beard allele.
+            1.2: at least one agent has the non-green-beard genotype,
+                 independently of the genotype of the agent notified of the danger, one of them will die
+        """
+
         # creating the "interaction rooms"
+        # proportion of the dangerous rooms is computed in such a way to ensure enough agents survive to
+        # generate the next generation according to the predefined scenario (linkage eq. or diseq.)
         num_agents = len(self.schedule.agents)
-        rooms_number = num_agents  # tot number of rooms
-        self.n_steps += 1
+        rooms_number = num_agents
 
         if not self.linkage_dis:
-            danger_number = num_agents // 1.893  # we derived it from the wcs to have at least 500 individuals left,
+            danger_number = num_agents // 1.893
         else:
             danger_number = num_agents // 1.9
 
         danger_dict: dict = {i: [] for i in range(int(danger_number))}
-        # dictionary in which the key is the room number and the value is the list of individuals in that room
 
-        # assign each agent to a tree/room
+        # assign each agent to an "interaction room"
         for agent in self.schedule.agent_buffer():
             rand = random.randint(1, rooms_number)
-            if rand < danger_number:  # pred
+            if rand < danger_number:
                 if len(danger_dict[rand]) < 2:
                     danger_dict[rand].append(agent)
-
                 else:
-                    continue  # goes to no pred room
-
-            else:  # goes to no pred room
+                    continue
+            else:
                 continue
 
-        # action of each agent
+        # action of each agent - Scenario 1
         for key, value in danger_dict.items():
             if len(value) == 0:
                 continue
@@ -241,9 +254,11 @@ class BeardModelAdv(Model):
                 gen1 = agent1.genotype
                 gen2 = agent2.genotype
 
-                if gen1[0] and gen2[1]:  # agent1 is altruistic and gen2 has green beard
-                    if random.random() < self.dr:  # die with 0.50 probability
+                # 1.1
+                if gen1[0] and gen2[1]:
+                    if random.random() < self.dr:
                         self.schedule.remove(agent1)
+                # 1.2
                 else:
                     self.schedule.remove(agent2)
 
@@ -257,29 +272,25 @@ class BeardModelAdv(Model):
 if __name__ == "__main__":
     model = BeardModelAdv()
 
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Initial freq TRUE BEARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Initial freq SUCKERS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq SUCKERS
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Initial freq IMPOSTORS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 0 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq IMPOSTORS
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Initial freq COWARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
     # initial frequency of green beard allele
     for i in range(500):
-        #print("step: ", i)
         model.step()
-    print("number of agents: ", model.schedule.get_agent_count())
 
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Final freq TRUE BEARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Final freq SUCKERS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq SUCKERS
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Final freq IMPOSTORS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 0 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq IMPOSTORS
-    print(len([a for a in model.schedule.agent_buffer() if
+    print("Final freq COWARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
-    # frequency of green beard allele
-    print("yee")
