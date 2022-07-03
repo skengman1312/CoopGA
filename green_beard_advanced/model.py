@@ -56,15 +56,12 @@ def crossover(agent1, agent2):
     """
     Implementation of crossover function, to apply a one point crossover to 2 agents
 
-    :param unique_id: a unique numeric identifier for the agent model
-    :type unique_id: int
-    :param model:  instance of the model that contains the agent
-    :type model: mesa.model
-    :param genotype: list composed of 2 binary representations (allele1, allele2)
-    :type genotype: list
-
-    RECOMBINATION (CROSSOVER) one point
+    :param agent1: a unique numeric identifier for the agent model
+    :type agent1: int
+    :param agent2:  instance of the model that contains the agent
+    :type agent2: mesa.model
     """
+
     allele1 = agent1.genotype[0]
     allele2 = agent2.genotype[1]
     return [allele1, allele2]
@@ -80,18 +77,26 @@ class BeardModelAdv(Model):
 
     def __init__(self, N=2000, r=0.25, dr=0.95, mr=0.001, cr=0, linkage_dis=False):
         """
-        N: total number of agents
-        r: initial ratio of each allele
-        dr: survival rate
-        mr: mutation rate
-        cr: crossover rate
+        BeardModelAdv init function
+
+        :param N: total number of agents, defaults to 500
+        :type N: int, optional
+        :param r: initial ratio of altruistic allele, defaults to 0.5
+        :type r: float, optional
+        :param dr: death rate for sacrificing altruist, defaults to 0.95
+        :type dr: float, optional
+        :param mr: mutation rate, defaults to 0.001
+        :type mr: float, optional
+        :param cr: cross-over rate, defaults to
+        :type cr: float, optional
+        :param linkage_dis: flag to preform linkage equilibrium or disequilibrium simulation, defaults to False
+        :type linkage_dis: bool, optional
         """
 
         super().__init__()
         self.schedule = SocialActivation(self)
         self.n_steps = 0
-        self.N = N  # N
-        self.tot_N = N
+        self.N = N
         self.current_id = 0
         self.mr = mr
         self.dr = dr
@@ -111,48 +116,58 @@ class BeardModelAdv(Model):
                     [a for a in x.schedule.agent_buffer() if a.genotype[0] == 0 and a.genotype[1] == 0]) / x.schedule.get_agent_count(),
                 "n_agents": lambda x: x.schedule.get_agent_count()})
 
+        self.add_agents(N, r, linkage_dis)
+
+    def add_agents(self, N, r, linkage_dis):
+        """
+        Add agents to the model with the right proportion (r) of altruistic allele
+
+        :param N: total number of agents
+        :type N: int
+        :param r: initial ratio of altruistic allele
+        :type r: float
+        :param linkage_dis: flag to preform linkage equilibrium or disequilibrium simulation, defaults to False
+        :type linkage_dis: bool, optional
+        """
+
         if not linkage_dis:
             # initialization without linkage disequilibrium
             for i in range(int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [1, 1])
-                self.tot_N += 1
                 self.schedule.add(agent)
 
             for i in range(int(N * r), 2 * int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [1, 0])
-                self.tot_N += 1
                 self.schedule.add(agent)
 
             for i in range(2 * int(N * r), 3 * int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [0, 1])
-                self.tot_N += 1
                 self.schedule.add(agent)
 
             for i in range(3 * int(N * r), N + 1):
                 agent = BeardAgent(self.next_id(), self, [0, 0])
-                self.tot_N += 1
                 self.schedule.add(agent)
 
         else:
             # initialization for linkage disequilibrium
             for i in range(int(N * r)):
                 agent = BeardAgent(self.next_id(), self, [1, 1])
-                self.tot_N += 1
                 self.schedule.add(agent)
 
             for i in range(int(N * r), N + 1):
                 agent = BeardAgent(self.next_id(), self, [0, 0])
-                self.tot_N += 1
                 self.schedule.add(agent)
 
     def reproduce(self, max_child=4):
         """
-        function to generate the new population from the parent individuals
-        select 2 random agents. Decide randomly if they will do 2,3 or 4 children. Create children with genotype taken
-        randomly from one of the 2 parents
-        During the reproduction there is the chance of crossover and mutation
+        Function to generate the new population from the parent individuals
+        1. Sample individuals from current population and Generate pairs of individuals
+        2. Create the new generation within a range, defining inherited genotype (cross-over and mutation applied)
+        3. Add the new generation of agents to the model
+        4. Remove all the "old" agents from the model
         """
 
+        # 1
         agents = random.sample([agent for agent in self.schedule.agents], k=self.schedule.get_agent_count())
 
         for i in range(0, len(agents)-1, 2):
@@ -160,15 +175,13 @@ class BeardModelAdv(Model):
             agent2 = agents[i + 1]
             n_child = random.randint(2, max_child)
 
+            # 2
             for j in range(n_child):
-                self.tot_N += 1
                 if random.random() < self.cr:
                     child_genotype = crossover(agent1, agent2)
                 else:
                     child_genotype = agent1.genotype if random.random() < 0.50 else agent2.genotype
 
-                # mutate = lambda x: x if random.random() > self.mr else 1 - x
-                # 0. is 1-mutation rate: 1-0.03 = 0.97 in accordance to bio findings
                 gen1 = child_genotype[0]
                 gen2 = child_genotype[1]
 
@@ -179,8 +192,11 @@ class BeardModelAdv(Model):
                     gen2 = 1 - gen2
 
                 child = BeardAgent(self.next_id(), self, [gen1, gen2])
+
+                # 3
                 self.schedule.add(child)
 
+            # 4
             self.schedule.remove(agent1)
             self.schedule.remove(agent2)
 

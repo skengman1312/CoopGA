@@ -136,7 +136,7 @@ class FamilyModel(Model):
         """
         Function to generate the new population from the parent individuals
         1. Sample N individuals from current population
-        2. Generate pairs of inidividuals
+        2. Generate pairs of individuals
         3. Create the new generation, defining inherited genotype (mutation applied) and family ID
         4. Remove all the "old" agents from the model
         5. Add the new generation of agents to the model
