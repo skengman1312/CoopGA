@@ -87,7 +87,7 @@ class BeardModelAdv(Model):
         :type dr: float, optional
         :param mr: mutation rate, defaults to 0.001
         :type mr: float, optional
-        :param cr: cross-over rate, defaults to
+        :param cr: cross-over rate, defaults to 0
         :type cr: float, optional
         :param linkage_dis: flag to preform linkage equilibrium or disequilibrium simulation, defaults to False
         :type linkage_dis: bool, optional
