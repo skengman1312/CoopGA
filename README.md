@@ -18,7 +18,7 @@ Please note that this scenario has no interactive simulation.
 In each folder there is a `model.py` script coding for the model class a dedicated `plotter.py` and `batch_run.py`. \
 Please note that this scenario has no interactive simulation.
 
-## Selfish herd
+## Selfish Herd
 The `selfish_herd` directory has a similar structure as the already described folder; the model class is defined in `model.py`
 and there are dedicated `plotter.py` and `batch_run.py`. \
 In addition, this scenario supports also an interactive web based simulation, to access it run `main.py` and open your 
