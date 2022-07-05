@@ -198,7 +198,7 @@ class BeardModel(Model):
                     self.schedule.remove(agent1)
 
         agents_id = [a.unique_id for a in self.schedule.agents]
-
+        random.shuffle(agents_id)
         self.schedule.step(agents_id)
 
         self.reproduce()

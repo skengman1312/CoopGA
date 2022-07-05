@@ -222,10 +222,10 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
 
     if not fill:
         # plot lines
-        plt.plot(lines_true['mean'], color="#120A8F", lw=0.5)
-        plt.plot(lines_suckers['mean'], color="#FF1493", lw=0.5)
-        plt.plot(lines_cowards['mean'], color="#F4A460", lw=0.5)
-        plt.plot(lines_impostors['mean'], color="#8FBC8F", lw=0.5)
+        plt.plot(lines_true['mean'], color="#120A8F", lw=2)
+        plt.plot(lines_suckers['mean'], color="#FF1493", lw=2)
+        plt.plot(lines_cowards['mean'], color="#F4A460", lw=2)
+        plt.plot(lines_impostors['mean'], color="#8FBC8F", lw=2)
 
     else:
         # filling the background wrt mean line values
@@ -259,7 +259,7 @@ def plot_all_prevalence(data, title="", params=["N", "r", "dr", "mr", "cr"], fre
     subtitle = " ".join([f"{p}={data[p][0]}" for p in params])
 
     plt.title(f"{maintitle}\n{subtitle}")
-    plt.legend(["true beards", "suckers", "cowards", "impostors"], loc='best', framealpha=0.2, title="Labels")
+    plt.legend(["true beards", "suckers", "cowards", "impostors"], loc="upper right", bbox_to_anchor=(1, 1),  framealpha=0.2, title="Labels")
     filename = f"{title.replace(' ', '')}_results.png" if title else "results.png"
     plt.savefig(filename)
     plt.show()
@@ -283,7 +283,7 @@ def get_all_param_ID(data, params=["N", "r", "dr", "mr", "cr"]):
     return data
 
 
-def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub="", frequency= True, fill=True):
+def multi_plot_all_prevalence(data, params=["N", "r", "dr", "mr", "cr"], sub="", frequency=True, fill=True):
     """
     function used to plot the mean of the allele prevalence across several simulation and with different hyperparameters
     in multiple plots
@@ -328,8 +328,8 @@ if __name__ == "__main__":
     #multi_plot_prevalence(multidata1, sub="Green Beard")
 
     #scatter3D(multidata, param1="mr", param2="dr", result="altruistic fraction",
-    # labels=["mutation rate", "death rate", "ending freq altruism"],
-          #all_params=["N", "r", "dr", "mr"], title="scatter")
+            #labels=["mutation rate", "death rate", "ending freq altruism"],
+            #all_params=["N", "r", "dr", "mr"], title="scatter")
     #scatter3D(multidata1, param1="mr", param2="dr", result="altruistic fraction",
     # labels=["mutation rate", "death rate", "ending freq altruism"],
           #all_params=["N", "r", "dr", "mr"], title="scatter")
@@ -337,11 +337,9 @@ if __name__ == "__main__":
 
     #### ----- FOR 4 ALLELES ------
 
-    #plot_all_prevalence(data, title="Green Beard linkage disequilibrium", frequency=True)
+    plot_all_prevalence(data, title="GreenBeard linkage-disequilibrium", frequency=True, fill=False)
     # frequency=false do the graph according to the agent numbers
-    #plot_all_prevalence(data1, title="Green Beard", frequency=True, fill=False)
+    plot_all_prevalence(data1, title="GreenBeard linkage-equilibrium", frequency=True, fill=False)
 
     #multi_plot_all_prevalence(multidata, sub="Green Beard linkage disequilibrium", frequency=True, fill=False)
-    #multi_plot_all_prevalence(multidata1, sub="Green Beard", frequency=True, fill=False)
-
-
+    #multi_plot_all_prevalence(multidata1, sub="Green Beard linkage equilibrium", frequency=True, fill=False)

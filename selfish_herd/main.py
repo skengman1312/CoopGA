@@ -55,7 +55,7 @@ if __name__ == '__main__':
                            "HerdModel",
                            {"n_creatures": UserSettableParameter("slider", "Creature number", 100, 0, 200, 1),
                             "n_pred": UserSettableParameter("slider", "Predator number", 10, 0, 20, 1),
-                            "sight": UserSettableParameter("slider", "Creature sight", 9, 0, 20, 1),
+                            "prey_sight": UserSettableParameter("slider", "Prey sight", 9, 0, 20, 1),
                             "jump_range": UserSettableParameter("slider", "Jump_range", 3, 0, 10, 1),
                             "mr": UserSettableParameter("slider", "Mutation rate", 0.01, 0, 1, 0.01),
                             "width": 100, "height": 100})

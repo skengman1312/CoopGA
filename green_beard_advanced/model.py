@@ -41,9 +41,9 @@ class BeardAgent(Agent):
         :type unique_id: int
         :param model:  instance of the model that contains the agent
         :type model: mesa.model
-        :param genotype: list composed of 2 binary representations [allele1, allele2]
-            - allele1: 1 codes for altruism, 0 for cowardice
-            - allele2: 1 code for green beard, 0 for non beard
+        :param genotype: list composed of 2 binary representations [gene1, gene2]
+            - gene1: 1 codes for altruism, 0 for cowardice
+            - gene2: 1 code for green beard, 0 for non beard
         :type genotype: list
         """
 
@@ -57,9 +57,9 @@ def crossover(agent1, agent2):
     Implementation of crossover function, to apply a one point crossover to 2 agents
 
     :param agent1: a unique numeric identifier for the agent model
-    :type agent1: int
-    :param agent2:  instance of the model that contains the agent
-    :type agent2: mesa.model
+    :type agent1: list
+    :param agent2: a unique numeric identifier for the agent model
+    :type agent2: list
     """
 
     allele1 = agent1.genotype[0]
@@ -75,7 +75,7 @@ class BeardModelAdv(Model):
     :type Model: mesa.model
     """
 
-    def __init__(self, N=2000, r=0.25, dr=0.95, mr=0.001, cr=0, linkage_dis=False):
+    def __init__(self, N=500, r=0.25, dr=0.95, mr=0.001, cr=0, linkage_dis=False):
         """
         BeardModelAdv init function
 
@@ -96,6 +96,7 @@ class BeardModelAdv(Model):
         super().__init__()
         self.schedule = SocialActivation(self)
         self.N = N
+        self.r = r
         self.current_id = 0
         self.mr = mr
         self.dr = dr
@@ -116,6 +117,7 @@ class BeardModelAdv(Model):
                 "n_agents": lambda x: x.schedule.get_agent_count()})
 
         self.add_agents(N, r, linkage_dis)
+        self.reproduce()
 
     def add_agents(self, N, r, linkage_dis):
         """
@@ -153,7 +155,7 @@ class BeardModelAdv(Model):
                 agent = BeardAgent(self.next_id(), self, [1, 1])
                 self.schedule.add(agent)
 
-            for i in range(int(N * r), N + 1):
+            for i in range(int(N * r), N):
                 agent = BeardAgent(self.next_id(), self, [0, 0])
                 self.schedule.add(agent)
 
@@ -263,6 +265,7 @@ class BeardModelAdv(Model):
                     self.schedule.remove(agent2)
 
         agents_id = [a.unique_id for a in self.schedule.agents]
+        random.shuffle(agents_id)
         self.schedule.step(agents_id)
 
         self.reproduce()
@@ -270,7 +273,7 @@ class BeardModelAdv(Model):
 
 
 if __name__ == "__main__":
-    model = BeardModelAdv()
+    model = BeardModelAdv(N=2000, r=0.5, dr=0.95, mr=0.0001, cr=0.0, linkage_dis=True)
 
     print("Initial freq TRUE BEARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
@@ -281,10 +284,11 @@ if __name__ == "__main__":
     print("Initial freq COWARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 0 and a.genotype[1] == 0]) / model.schedule.get_agent_count())  # freq COWARDS
 
-    # initial frequency of green beard allele
-    for i in range(500):
+    for i in range(1000):
         model.step()
+        print(i)
 
+    print(model.schedule.get_agent_count())
     print("Final freq TRUE BEARDS:", len([a for a in model.schedule.agent_buffer() if
                a.genotype[0] == 1 and a.genotype[1] == 1]) / model.schedule.get_agent_count())  # freq TRUE BEARDS
     print("Final freq SUCKERS:", len([a for a in model.schedule.agent_buffer() if
