@@ -12,7 +12,7 @@ mov_vectorize = lambda x, y: [coord[0] - coord[1] for coord in zip(x, y)]
 class PredatorAgent(Agent):
     """A Predator Agent seeking for prey agents."""
 
-    def __init__(self, unique_id, model, sight, jump_range=3, type="predator"):
+    def __init__(self, unique_id, model, sight = 5, jump_range=3, type="predator"):
         """
         Predator Agent init function
         :param unique_id: a unique numeric identifier for the agent model
@@ -119,7 +119,7 @@ class PredatorAgent(Agent):
 class PreyAgent(Agent):
     """A Prey Agent."""
 
-    def __init__(self, unique_id, model, genotype: list, type="creature", sight=None):
+    def __init__(self, unique_id, model, genotype: list, sight: int, type="creature"):
         """
         Prey Agent init function
 
@@ -129,10 +129,10 @@ class PreyAgent(Agent):
         :type model: mesa.model
         :param genotype: representation of single-gene genotype in [-1,1] (-1: non-selfish, 1: selfish)
         :type genotype: list
-        :param type: identifier of the agent type, namely all the agents belonging to this class
-        :type type: str
         :param sight: maximum distance radio of interaction with other agents
         :type sight: int
+        :param type: identifier of the agent type, namely all the agents belonging to this class
+        :type type: str
         """
 
         super().__init__(unique_id, model)
@@ -226,7 +226,7 @@ class HerdModel(Model):
     :type Model: mesa.model
     """
 
-    def __init__(self, n_creatures: int, n_pred: int, sight: int, jump_range: int, mr: int, width: int, height: int):
+    def __init__(self, n_creatures: int, n_pred: int, jump_range: int, mr: int, prey_sight: int, predator_sight=5, width=100, height=100):
         """
         HerdModel init function
 
@@ -234,19 +234,22 @@ class HerdModel(Model):
         :type n_creatures: int
         :param n_pred: total number of PredatorAgents
         :type n_pred: int
-        :param sight: maximum distance radio of interaction of Predators with Preys agents
-        :type sight: int
         :param jump_range: maximum range within which predator can hunt a creature
         :type jump_range: int
         :param mr: mutation rate
         :type mr: float
+        :param prey_sight: maximum distance radio of interaction of Preys agents
+        :type prey_sight: int
+        :param predator_sight: maximum distance radio of interaction of Predators agents
+        :type predator_sight: int
         :param width, height: The mesa grid’s width and height
         :type width, height: int
         """
 
         self.num_agents = n_creatures
         self.num_pred = n_pred
-        self.sight = sight
+        self.prey_sight = prey_sight
+        self.predator_sight = predator_sight
         self.mr = mr
         self.jump_range = jump_range
         self.schedule = RandomActivation(self)
@@ -284,7 +287,7 @@ class HerdModel(Model):
 
         # adding selfish PreyAgents (genotype = 1)
         for i in range(0, num_agents // 2):
-            a = PreyAgent(self.next_id(), self, genotype=[1], type="creature", sight=self.sight)
+            a = PreyAgent(self.next_id(), self, genotype=[1], type="creature", sight=self.prey_sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -293,7 +296,7 @@ class HerdModel(Model):
 
         # adding non-selfish PreyAgents (genotype = -1)
         for i in range(0, num_agents // 2):
-            a = PreyAgent(self.next_id(), self, genotype=[-1], type="creature", sight=self.sight)
+            a = PreyAgent(self.next_id(), self, genotype=[-1], type="creature", sight=self.prey_sight)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -301,7 +304,7 @@ class HerdModel(Model):
             self.grid.place_agent(a, (x, y))
 
         for i in range(0, num_pred):
-            a = PredatorAgent(self.next_id(), self, type="predator", sight=self.sight, jump_range=self.jump_range)
+            a = PredatorAgent(self.next_id(), self, type="predator", sight= self.predator_sight, jump_range=self.jump_range)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)
@@ -332,11 +335,11 @@ class HerdModel(Model):
             for j in range(n_child):
                 gen1 = [agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0]]
 
-                """# TODO MUTATION
+                # TODO MUTATION
                 if random.random() < self.mr:  # random mutation
-                    gen1[0] = round(random.uniform(-1, 1), 2)"""
+                    gen1[0] = round(random.uniform(-1, 1), 2)
 
-                child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.sight)
+                child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.prey_sight)
 
                 # 3
                 self.schedule.add(child)
