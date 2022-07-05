@@ -286,7 +286,6 @@ if __name__ == "__main__":
 
     for i in range(1000):
         model.step()
-        print(i)
 
     print(model.schedule.get_agent_count())
     print("Final freq TRUE BEARDS:", len([a for a in model.schedule.agent_buffer() if

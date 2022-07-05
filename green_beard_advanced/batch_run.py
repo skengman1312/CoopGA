@@ -6,7 +6,7 @@ if __name__ == '__main__':
     params = {"N": 1000,
               "r": 0.50,  # 0.25,
               "dr": 0.95,
-              "mr": [0.001 * x for x in range(1, 5)], #0.001,  # [0.001 * x for x in range(1, 5)],
+              "mr": 0.001,  # [0.001 * x for x in range(1, 5)],
               "cr": 0.0002,  # [0.001 * x for x in range(1, 5)],
               "linkage_dis": True}
 
@@ -23,9 +23,8 @@ if __name__ == '__main__':
     results_df = pd.DataFrame(results)
 
     #results_df.to_csv("result_nolinkage.csv")
-    #results_df.to_csv("result.csv")
+    results_df.to_csv("result.csv")
 
-    results_df.to_csv("multi_result.csv")
+    #results_df.to_csv("multi_result.csv")
     #results_df.to_csv("multi_result_nolinkage.csv")
 
-    print("yeee")
