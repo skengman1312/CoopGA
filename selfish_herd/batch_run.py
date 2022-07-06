@@ -4,9 +4,9 @@ import pandas as pd
 
 if __name__ == '__main__':
     params = {"n_creatures": 200,  # range(50, 200, 10),
-              "n_pred": 15, #range(10, 16, 5),
-              "prey_sight": range(3, 8, 2),
-              "jump_range": 5, #range(2, 5, 1),
+              "n_pred": range(5, 16, 5),
+              "prey_sight": 5, #range(3, 6, 1),
+              "jump_range": range(3, 8, 2),
               "mr": 0.001,  # [0.001 * x for x in range(1, 2)],
               "width": 100, "height": 100}
 

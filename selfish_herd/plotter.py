@@ -149,7 +149,7 @@ def scatter3D(data, param1, param2, result, labels, all_params, title=""):
 
     ax.plot_surface(xx, yy, z, alpha=0.2)
 
-    ax.legend(handles, runs.data)
+    #ax.legend(handles, runs.data)
 
     maintitle = f"Selfish Herd {title}" if title else "Selfish Herd"
     plt.title(f"{maintitle}")
@@ -164,8 +164,8 @@ if __name__ == '__main__':
     data = pd.read_csv("result.csv", index_col=0)
     multidata = pd.read_csv("multi_result.csv", index_col=0)
 
-    scatter3D(multidata, param1="jump_range", param2="prey_sight", result="Selfish gene frequency",
-              labels=["jump_range", "prey_sight", "ending selfish freq "],
+    scatter3D(multidata, param1="jump_range", param2="n_pred", result="Selfish gene frequency",
+              labels=["jump range", "number of predators", "ending selfish freq "],
               all_params=["n_creatures", "n_pred", "prey_sight", "jump_range", "mr"], title="scatter")
 
     #scatter3D(data, param1="jump_range", param2="sight", result="Selfish gene frequency",

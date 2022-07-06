@@ -31,7 +31,7 @@ class PredatorAgent(Agent):
         self.hp = 0
         self.type = type
         self.sight = sight
-        self.rest_time = sight
+        self.rest_time = 5
         self.jump_range = jump_range
 
     def step(self):
@@ -226,7 +226,7 @@ class HerdModel(Model):
     :type Model: mesa.model
     """
 
-    def __init__(self, n_creatures: int, n_pred: int, jump_range: int, mr: int, prey_sight: int, predator_sight=6, width=100, height=100):
+    def __init__(self, n_creatures: int, n_pred: int, jump_range: int, mr: int, prey_sight=5, predator_sight=5, width=100, height=100):
         """
         HerdModel init function
 
