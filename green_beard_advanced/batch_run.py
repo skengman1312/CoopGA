@@ -13,7 +13,7 @@ if __name__ == '__main__':
     results = batch_run(
         BeardModelAdv,
         parameters=params,
-        iterations=10,
+        iterations=20,
         max_steps=1000,
         number_processes=None,
         data_collection_period=1,

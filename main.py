@@ -1,5 +1,5 @@
 import sys
-sys.path.append('prova_0')
+sys.path.append('Additional_scenarious/prova_0')
 from model import FoodModel
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
