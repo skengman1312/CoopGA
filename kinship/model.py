@@ -168,7 +168,6 @@ class FamilyModel(Model):
         # creating the "interaction rooms"
         # proportion of the dangerous rooms is compute in such a way to ensure enough agents survive to 
         # generate the next generation
-        # TODO: generalize fo x children 
         danger_number = self.N // 4
         ufid = list(set([a.family for a in self.schedule.agent_buffer()]))
 
