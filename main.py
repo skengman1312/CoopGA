@@ -9,7 +9,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 # Press Maiusc+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-# TODO: mettrer predatori
+
 def agent_portrayal(agent):
     portrayal = {"Shape": "rect",
                  "Color": "Color",

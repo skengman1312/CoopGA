@@ -10,8 +10,6 @@ PreyAgents are coloured according to the genotype (blu if >= 0, green otherwise)
 PredatorAgents are coloured in red
 """
 
-# TODO plots in interface starts from zero, resolve this problem
-
 
 def agent_portrayal(agent):
     if agent.type == "creature":

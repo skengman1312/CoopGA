@@ -210,13 +210,26 @@ class PreyAgent(Agent):
         :param npredator: positions (x and y coordinates) of all predators in the sight radius of the agent
         :type npredator: tuple
         """
-        # TODO CENTRE OF MASS OF PREDATORS
-        # se c'è più di un predator scappi da entrambi e non solo dal nearest
 
         nearest_predator = min(npredator,
                                key=lambda x: sqrt(((self.pos[0] - x[0]) ** 2) + ((self.pos[1] - x[1]) ** 2)))
         return mov_vectorize([x for x in nearest_predator], self.pos)
 
+def mutation(genotype, k):
+
+    """
+    Implementation of mutation function that applies a shift to the genotype value
+
+    :param genotype: genotype to mutate
+    :type genotype: list
+    :param k: maximum mutation shift
+    :type k: float
+    """
+
+    ub = genotype[0] + k if genotype[0] + k < 1 else 1
+    lb = genotype[0] - k if genotype[0] - k > -1 else -1
+    new_genotype = [random.uniform(ub, lb)]
+    return new_genotype
 
 class HerdModel(Model):
     """
@@ -272,7 +285,6 @@ class HerdModel(Model):
                                         len([agent for agent in x.schedule.agents if agent.type == "creature"])
             if len([agent for agent in x.schedule.agents if agent.type == "creature"]) != 0 else 0})
 
-        # TODO SISTEMARE IL DATA COLLECTOR
         self.add_agents(n_creatures, n_pred)
 
     def add_agents(self, num_agents, num_pred):
@@ -319,8 +331,6 @@ class HerdModel(Model):
         3. Add the new generation of agents to the model and to the grid (in a random position)
         4. Remove all the "old" agents from the model and the grid
         """
-        # TODO PROBLEMI CON LA REPRODUCTION, PROVARE CON k=self.num_agents
-        # loro fanno il reproduce sopra
 
         # 1
         preys = [agent for agent in self.schedule.agents if agent.type == "creature"]
@@ -335,9 +345,9 @@ class HerdModel(Model):
             for j in range(n_child):
                 gen1 = [agent1.genotype[0] if random.random() < 0.50 else agent2.genotype[0]]
 
-                # TODO MUTATION
+                # Mutation
                 if random.random() < self.mr:  # random mutation
-                    gen1[0] = round(random.uniform(-1, 1), 2)
+                    gen1 = mutation(gen1, 0.2)
 
                 child = PreyAgent(self.next_id(), self, genotype=gen1, type="creature", sight=self.prey_sight)
 
@@ -359,7 +369,6 @@ class HerdModel(Model):
         Model step
         Reproduction is performed every time the number of creatures reaches a threshold.
         """
-        # TODO FORSE MEGLIO FARE LA REPRODUCTION OGNI TOT STEP?
 
         self.schedule.step()
 
